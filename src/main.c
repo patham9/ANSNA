@@ -18,7 +18,7 @@
 #define SDR_TERM_SIZE 2048
 #define SDR_TERM_ONES 5
 #define TERMS_MAX 100
-#define SDR_BLOCK_TYPE __uint128_t
+#define SDR_BLOCK_TYPE __uint64_t
 #define SDR_BLOCK_SIZE sizeof(SDR_BLOCK_TYPE)
 
 //Data structure//
