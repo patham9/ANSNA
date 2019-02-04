@@ -19,7 +19,11 @@ Decision Decision_PotentiallyExecute(Concept *c, Event *goal, long currentTime)
             G.occurrenceTime = currentTime;
             SDR a_rest = SDR_Minus(&goal->sdr, &op.sdr);
             Event b = FIFO_GetHighestConfidentProjectedTo(&c->event_beliefs, currentTime, &a_rest).projectedEvent;
-            if(Truth_Expectation(Truth_Deduction(G.truth, b.truth)) > DECISION_THRESHOLD)
+            
+            Truth desire;
+            desire.frequency = G.truth.frequency;// desirability is desirability of goal - we don't care about the belief
+            desire.confidence = G.truth.confidence * b.truth.confidence;// more confident goal and more confident belief lead to more confidence in desire
+            if(Truth_Expectation(desire) > DECISION_THRESHOLD)
             {
                 result.executed = true;
                 (*op.action)();
