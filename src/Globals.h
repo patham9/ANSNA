@@ -11,6 +11,9 @@ extern int OUTPUT;
 #define IN_DEBUG(x) {if(DEBUG){ x } }
 #define IN_OUTPUT(x) {if(OUTPUT){ x } }
 
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)<(b))?(b):(a))
+
 #include <stdbool.h>
 
 void assert(bool b, char* message);

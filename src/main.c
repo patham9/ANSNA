@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "SDR.h"
 #include "Memory.h"
 #include "Encode.h"
@@ -265,6 +266,119 @@ void ANSNA_Follow_Test()
     printf("<<ANSNA Follow test successful\n");
 }
 
+bool ANSNA_Pong_Left_executed = false;
+void ANSNA_Pong_Left()
+{
+    printf("Exec: op_left\n");
+    ANSNA_Pong_Left_executed = true;
+}
+bool ANSNA_Pong_Right_executed = false;
+void ANSNA_Pong_Right()
+{
+    printf("Exec: op_right\n");
+    ANSNA_Pong_Right_executed = true;
+}
+void ANSNA_Pong()
+{
+    OUTPUT = 0;
+    ANSNA_INIT();
+    printf(">>ANSNA Pong start\n");
+    ANSNA_AddOperation(Encode_Term("op_left"), ANSNA_Pong_Left); 
+    ANSNA_AddOperation(Encode_Term("op_right"), ANSNA_Pong_Right); 
+
+    int sz = 20;
+    int ballX = sz/3;
+    int ballY = sz/3;
+    int batX = 20;
+    int batVX = 0;
+    int batWidth = 5; //"radius", batWidth from middle to the left and right
+    int vX = 1;
+    int vY = 1;
+    ANSNA_AddInputBelief(Encode_Term("good_boy"));
+    ANSNA_AddInputBelief(Encode_Term("ball_right"));
+    ANSNA_AddInputBelief(Encode_Term("ball_left"));
+    while(1)
+    {
+        printf("\e[1;1H\e[2J"); //POSIX clear screen
+        ANSNA_Cycles(10);
+        ANSNA_Util_PrintExistingEventNarsese(ANSNA_AddInputGoal(Encode_Term("good_boy")));
+        ANSNA_Cycles(10);
+        
+        if(batX < ballX)
+        {
+            ANSNA_Util_PrintExistingEventNarsese(ANSNA_AddInputBelief(Encode_Term("ball_right")));
+        }
+        if(ballX < batX)
+        {
+            ANSNA_Util_PrintExistingEventNarsese(ANSNA_AddInputBelief(Encode_Term("ball_left")));
+        }
+        printf("\n");
+
+        if(ballX <= 0)
+            vX = 1;
+        if(ballX >= sz-1)
+            vX = -1;
+        if(ballY <= 0)
+            vY = 1;
+        if(ballY >= sz-1)
+            vY = -1;
+        
+        ballX += vX;
+        ballY += vY;
+        
+        for(int i=0; i<batX-batWidth+1; i++)
+        {
+            printf(" ");
+        }
+        for(int i=0; i<batWidth*2-1 ;i++)
+        {
+            printf("@");
+        }
+        printf("\n");
+        
+        for(int i=0; i<ballY; i++)
+        {
+            for(int k=0; k<sz; k++)
+            {
+                printf(" ");
+            }
+            printf("\n");
+        }
+        for(int i=0; i<ballX; i++)
+        {
+            printf(" ");
+        }
+        printf("#\n");
+        for(int i=ballY+1; i<sz; i++)
+        {
+            for(int k=0; k<sz; k++)
+            {
+                printf(" ");
+            }
+            printf("\n");
+        }
+        
+        if(ballY == 0 && abs(ballX-batX) <= batWidth)
+        {
+            ANSNA_AddInputBelief(Encode_Term("good_boy"));
+            printf("good\n");
+        }
+        if(ANSNA_Pong_Left_executed)
+        {
+            ANSNA_Pong_Left_executed = false;
+            batVX = -1;
+        }
+        if(ANSNA_Pong_Right_executed)
+        {
+            ANSNA_Pong_Right_executed = false;
+            batVX = 1;
+        }
+        batX=MAX(0,MIN(sz-1,batX+batVX*batWidth/2));
+        
+        usleep(100000); //POSIX sleep
+    }
+}
+
 int main() 
 {
     srand(1337);
@@ -276,7 +390,8 @@ int main()
     Table_Test();
     ANSNA_Alphabet_Test();
     ANSNA_Procedure_Test();
-    ANSNA_Follow_Test();
+    ANSNA_Pong();
+    //ANSNA_Follow_Test();
     return 0;
 }
 
