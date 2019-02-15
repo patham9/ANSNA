@@ -92,36 +92,6 @@ void Stamp_Test()
     printf("<<Stamp test successful\n");
 }
 
-void PriorityQueue_Test()
-{
-    printf(">>PriorityQueue test start\n");
-    PriorityQueue queue;
-    int n_items = 10;
-    Item items[n_items];
-    for(int i=0; i<n_items; i++)
-    {
-        items[i].address = (void*) ((long) i+1);
-        items[i].priority = 0;
-    }
-    PriorityQueue_RESET(&queue, items, n_items);
-    for(int i=0, evictions=0; i<n_items*2; i++)
-    {
-        PriorityQueue_Push_Feedback feedback = PriorityQueue_Push(&queue, 1.0/((double) (n_items*2-i)));
-        if(feedback.added)
-        {
-            printf("item was added %f %ld\n", feedback.addedItem.priority, (long)feedback.addedItem.address);
-        }
-        if(feedback.evicted)
-        {
-            printf("evicted item %f %ld\n", feedback.evictedItem.priority, (long)feedback.evictedItem.address);
-            assert(evictions>0 || feedback.evictedItem.priority == 1.0/((double) (n_items*2)), "the evicted item has to be the lowest priority one");
-            assert(queue.itemsAmount < n_items+1, "eviction should only happen when full!");
-            evictions++;
-        }
-    }
-    printf("<<PriorityQueue test successful\n");
-}
-
 void Table_Test()
 {
     printf(">>Table test start\n");
@@ -148,11 +118,71 @@ void Table_Test()
     printf("<<Table test successful\n");
 }
 
+void Memory_Test()
+{
+    ANSNA_INIT();
+    printf(">>Memory test start\n");
+    Event e = Event_InputEvent(Encode_Term("a"), 
+                               EVENT_TYPE_BELIEF, 
+                               (Truth) {.frequency = 1, .confidence = 0.9}, 
+                               1337);
+    e.attention.priority = 0.9;
+    Memory_addEvent(&e);
+    assert(events[0].truth.confidence == 0.9,"event has to be there"); //identify
+    int returnIndex;
+    assert(!Memory_getClosestConcept(&e, &returnIndex), "a concept doesn't exist yet!");
+    Concept *c = Memory_Conceptualize(&e.sdr, &e.attention, 1337);
+    bool conceptWasCreated = false;
+    for(int i=0; i<CONCEPTS_MAX; i++)
+    {
+        if(c == &concepts[i])
+        {
+            conceptWasCreated = true;
+        }
+    }
+    assert(conceptWasCreated, "Concept should have been created!");
+    assert(Memory_FindConceptBySDR(&e.sdr, &returnIndex), "Concept should be found!");
+    assert(c ==& concepts[returnIndex], "e should match to c!");
+    assert(Memory_getClosestConcept(&e, &returnIndex), "Concept should be found!");
+    assert(c == &concepts[returnIndex], "e should match to c!");
+
+    Event e2 = Event_InputEvent(Encode_Term("b"), 
+                               EVENT_TYPE_BELIEF, 
+                               (Truth) {.frequency = 1, .confidence = 0.9}, 
+                               1337);
+    e2.attention.priority = 0.3;
+    Memory_addEvent(&e2);
+    Concept *c2 = Memory_Conceptualize(&e2.sdr, &e2.attention, 1337);
+    assert(Memory_FindConceptBySDR(&e2.sdr, &returnIndex), "Concept should be found!");
+    assert(c2 == &concepts[returnIndex], "e2 should match to c2!");
+    assert(Memory_getClosestConcept(&e2, &returnIndex), "Concept should be found!");
+    assert(c2 == &concepts[returnIndex], "e2 should closest-match to c2!");
+    assert(Memory_FindConceptBySDR(&e.sdr, &returnIndex), "Concept should be found!");
+    assert(c == &concepts[returnIndex], "e should match to c!");
+    assert(Memory_getClosestConcept(&e, &returnIndex), "Concept should be found!");
+    assert(c == &concepts[returnIndex], "e should closest-match to c!");
+    Event e3 = Event_InputEvent(Encode_Term("c"), 
+                               EVENT_TYPE_BELIEF, 
+                               (Truth) {.frequency = 1, .confidence = 0.9}, 
+                               1337);
+    e3.attention.priority = 0.5;
+    Memory_addEvent(&e3);
+    Concept *c3 = Memory_Conceptualize(&e3.sdr, &e3.attention, 1337);
+    Concept* selectedConcepts[2];
+    int conceptsSelected = Memory_selectHighestPriorityConcepts(2, &selectedConcepts);
+    printf("selected concepts %d\n",conceptsSelected);
+    assert(conceptsSelected == 2, "there were 3 available, so it should have been able to select 2");
+    assert(selectedConcepts[0] == c, "c should be the first choice");
+    assert(selectedConcepts[1] == c3, "c3 should be the second choice");
+    printf("<<Memory test successful\n");
+}
+
 void ANSNA_Alphabet_Test()
 {
     ANSNA_INIT();
     printf(">>ANSNA Alphabet test start\n");
     ANSNA_AddInput(Encode_Term("a"), EVENT_TYPE_BELIEF, ANSNA_DEFAULT_TRUTH);
+    //ANSNA_Cycles(1);return;//--
     for(int i=0; i<50; i++)
     {
         int k=i%10;
@@ -218,6 +248,11 @@ void ANSNA_Follow_Test()
     for(int i=0;i<simsteps; i++)
     {
         ANSNA_AddInputBelief(BALL == LEFT ? Encode_Term("ball_left") : Encode_Term("ball_right"));
+        if(ANSNA_Follow_Test_Right_executed && ANSNA_Follow_Test_Left_executed) //inconclusive
+        {
+            ANSNA_Follow_Test_Right_executed = false;
+            ANSNA_Follow_Test_Left_executed = false;
+        }
         if(ANSNA_Follow_Test_Right_executed)
         {
             ANSNA_Follow_Test_Right_executed = false;
@@ -255,9 +290,9 @@ void ANSNA_Follow_Test()
         {
             BALL = rand() % 2;
         }
-        ANSNA_Cycles(10);
+        ANSNA_Cycles(1);
         ANSNA_AddInputGoal(Encode_Term("good_boy"));
-        ANSNA_Cycles(10);
+        ANSNA_Cycles(1);
         printf("Score %i\n", score);
         assert(score > -5, "too bad");
         if(score >= 10)
@@ -285,7 +320,6 @@ void ANSNA_Pong()
     printf(">>ANSNA Pong start\n");
     ANSNA_AddOperation(Encode_Term("op_left"), ANSNA_Pong_Left); 
     ANSNA_AddOperation(Encode_Term("op_right"), ANSNA_Pong_Right); 
-
     int sz = 20;
     int ballX = sz/3;
     int ballY = sz/3;
@@ -303,7 +337,6 @@ void ANSNA_Pong()
         ANSNA_Cycles(10);
         ANSNA_Util_PrintExistingEventNarsese(ANSNA_AddInputGoal(Encode_Term("good_boy")));
         ANSNA_Cycles(10);
-        
         if(batX < ballX)
         {
             ANSNA_Util_PrintExistingEventNarsese(ANSNA_AddInputBelief(Encode_Term("ball_right")));
@@ -313,19 +346,24 @@ void ANSNA_Pong()
             ANSNA_Util_PrintExistingEventNarsese(ANSNA_AddInputBelief(Encode_Term("ball_left")));
         }
         printf("\n");
-
         if(ballX <= 0)
+        {
             vX = 1;
+        }
         if(ballX >= sz-1)
+        {
             vX = -1;
+        }
         if(ballY <= 0)
+        {
             vY = 1;
+        }
         if(ballY >= sz-1)
+        {
             vY = -1;
-        
+        }
         ballX += vX;
         ballY += vY;
-        
         for(int i=0; i<batX-batWidth+1; i++)
         {
             printf(" ");
@@ -335,7 +373,6 @@ void ANSNA_Pong()
             printf("@");
         }
         printf("\n");
-        
         for(int i=0; i<ballY; i++)
         {
             for(int k=0; k<sz; k++)
@@ -357,7 +394,6 @@ void ANSNA_Pong()
             }
             printf("\n");
         }
-        
         if(ballY == 0 && abs(ballX-batX) <= batWidth)
         {
             ANSNA_AddInputBelief(Encode_Term("good_boy"));
@@ -374,7 +410,6 @@ void ANSNA_Pong()
             batVX = 1;
         }
         batX=MAX(0,MIN(sz-1,batX+batVX*batWidth/2));
-        
         usleep(100000); //POSIX sleep
     }
 }
@@ -386,10 +421,10 @@ int main()
     SDR_Test();
     Stamp_Test();
     FIFO_Test();
-    PriorityQueue_Test();
     Table_Test();
-    ANSNA_Alphabet_Test();
-    ANSNA_Procedure_Test();
+    Memory_Test();
+    //ANSNA_Alphabet_Test();
+    //ANSNA_Procedure_Test();
     ANSNA_Pong();
     //ANSNA_Follow_Test();
     return 0;

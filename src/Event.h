@@ -20,7 +20,6 @@
 typedef struct {
     Attention attention;
     SDR sdr;
-    SDR_HASH_TYPE sdr_hash;
     char type; //either JUDGMENT or GOAL
     Truth truth;
     Stamp stamp;
@@ -37,5 +36,7 @@ void Event_SetSDR(Event *event, SDR sdr);
 Event Event_InputEvent(SDR sdr, char type, Truth truth, long currentTime);
 //print event
 void Event_Print(Event *event);
+//whether event exists
+bool Event_Exists(Event *event);
 
 #endif

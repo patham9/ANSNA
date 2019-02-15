@@ -11,23 +11,18 @@
 //References//
 //////////////
 #include "Concept.h"
-#include "PriorityQueue.h"
 
 //Parameters//
 //----------//
 #define CONCEPTS_MAX 1000 //TODO statically alloc once on INIT, as can lead in value too large for the compiler to handle
 #define EVENTS_MAX 64
-#define VOTING 1
-#define EXHAUSTIVE 2
-#define USE_HASHING true
-#define MATCH_STRATEGY EXHAUSTIVE
 #define OPERATIONS_MAX 1000
 
 //Data structure//
 //--------------//
 //Data structures
-PriorityQueue concepts;
-PriorityQueue events;
+extern Concept *concepts;
+extern Event *events;
 typedef void (*Action)(void);
 typedef void (*EventInspector)(Event *);
 typedef struct
@@ -43,19 +38,21 @@ EventInspector event_inspector;
 //Init memory
 void Memory_INIT();
 //Find a concept
-bool Memory_FindConceptBySDR(SDR *sdr, SDR_HASH_TYPE sdr_hash, int *returnIndex);
+bool Memory_FindConceptBySDR(SDR *sdr, int *returnIndex);
 //Create a new concept
-Concept* Memory_Conceptualize(SDR *sdr, Attention attention);
+Concept* Memory_Conceptualize(SDR *sdr, Attention *attention, long currentTime);
 //Return closest concept
 bool Memory_getClosestConcept(Event *event, int *returnIndex);
-//Add an already existing concept to memory that was taken out from the concept priority queue
-bool Memory_addConcept(Concept *concept);
 //Add event to memory
-bool Memory_addEvent(Event *event);
+void Memory_addEvent(Event *event);
 //Add operation to memory
 void Memory_addOperation(Operation op);
 //Reset events
 void Memory_ResetEvents();
 //Reset concepts
 void Memory_ResetConcepts();
+//Select highest priority concepts
+int Memory_selectHighestPriorityConcepts(int k, Concept **selectedConcepts);
+//Select highest priority events
+int Memory_selectHighestPriorityEvents(int k, Event **selectedEvents);
 #endif

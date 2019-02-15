@@ -23,6 +23,11 @@ void Concept_Print(Concept *concept)
     printf("\n");
 }
 
+bool Concept_Exists(Concept *concept)
+{
+    return concept != NULL && concept->id != 0;
+}
+
 void Concept_SDRInterpolation(Concept *concept, SDR *eventSDR, Truth matchTruth)
 {
     double u = Truth_Expectation(matchTruth);

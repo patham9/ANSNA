@@ -49,7 +49,7 @@ void ANSNA_Util_PrintExistingEventNarsese(Event e)
     int closest_concept_i=0;
     if(Memory_getClosestConcept(&e, &closest_concept_i))
     {
-        Concept *c = concepts.items[closest_concept_i].address;
+        Concept *c = &concepts[closest_concept_i];
         char* st = e.type == EVENT_TYPE_BELIEF ? "." : "!";
         printf("Input: %ld%s %%%f;%f%%\n", c->id, st, e.truth.frequency, e.truth.confidence);
     }

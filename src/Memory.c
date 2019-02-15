@@ -1,30 +1,37 @@
 #include "Memory.h"
 
-Concept concept_storage[CONCEPTS_MAX];
-Event event_storage[EVENTS_MAX];
-Item concept_items_storage[CONCEPTS_MAX];
-Item event_items_storage[EVENTS_MAX];
-
 int operations_index = 0;
+Concept *concepts = NULL;
+Event *events = NULL;
 
 void Memory_ResetEvents()
 {
-    PriorityQueue_RESET(&events, event_items_storage, EVENTS_MAX);
-    for(int i=0; i<EVENTS_MAX; i++)
+    if(events != NULL)
     {
-        event_storage[i] = (Event) {0};
-        events.items[i] = (Item) { .address = &(event_storage[i]) };
+        free(events);
+    }
+    events = calloc(EVENTS_MAX, sizeof(Event)); 
+    if(events == NULL)
+    {
+        printf("OUT OF MEMORY: Can't allocate %f Gigabytes for events!\n", 
+              ((float)EVENTS_MAX*sizeof(Event))/(1000000000.0f));
+        exit(1);
     }
 }
 
 void Memory_ResetConcepts()
 {
-    PriorityQueue_RESET(&concepts, concept_items_storage, CONCEPTS_MAX);
-    for(int i=0; i<CONCEPTS_MAX; i++)
+    if(concepts != NULL)
     {
-        concept_storage[i] = (Concept) {0};
-        concepts.items[i] = (Item) { .address = &(concept_storage[i]) };
-    }   
+        free(concepts);
+    }
+    concepts = calloc(CONCEPTS_MAX, sizeof(Concept));
+    if(concepts == NULL)
+    {
+        printf("OUT OF MEMORY: Can't allocate %f Gigabytes for concepts!\n",
+               ((float)CONCEPTS_MAX*sizeof(Concept))/(1000000000.0f));
+        exit(1);
+    }
 }
 
 long concept_id = 1;
@@ -40,17 +47,12 @@ void Memory_INIT()
     concept_id = 1;
 }
 
-#if MATCH_STRATEGY == VOTING
-Concept* bitToConcept[SDR_SIZE][CONCEPTS_MAX];
-int bitToConceptAmount[SDR_SIZE];
-#endif
-
-bool Memory_FindConceptBySDR(SDR *sdr, SDR_HASH_TYPE sdr_hash, int *returnIndex)
+bool Memory_FindConceptBySDR(SDR *sdr, int *returnIndex)
 {
-    for(int i=0; i<concepts.itemsAmount; i++)
+    for(int i=0; i<CONCEPTS_MAX; i++)
     {
-        Concept *existing = concepts.items[i].address;
-        if(!USE_HASHING || existing->sdr_hash == sdr_hash)
+        Concept *existing = &concepts[i];
+        if(Concept_Exists(existing)) //it exists
         {
             if(SDR_Equal(&existing->sdr, sdr))
             {
@@ -65,180 +67,174 @@ bool Memory_FindConceptBySDR(SDR *sdr, SDR_HASH_TYPE sdr_hash, int *returnIndex)
     return false;
 }
 
-Concept* Memory_Conceptualize(SDR *sdr, Attention attention)
+Concept* Memory_Conceptualize(SDR *sdr, Attention *attention, long currentTime)
 {
-    Concept *addedConcept = NULL;
-    //try to add it, and if successful add to voting structure
-    PriorityQueue_Push_Feedback feedback = PriorityQueue_Push(&concepts, attention.priority);
-    if(feedback.added)
+    //1. find concept of lowest usefulness or, if available, an empty concept
+    int leastUsefulIndex = 0;
+    double leastUsefulness = 1.0;
+    for(int i=0; i<CONCEPTS_MAX; i++)
     {
-        
-        addedConcept = feedback.addedItem.address;
-        *addedConcept = (Concept) {0};
-        Concept_SetSDR(addedConcept, *sdr);
-        addedConcept->attention = attention;
-        addedConcept->id = concept_id++;
-    }
-#if MATCH_STRATEGY == VOTING
-    if(feedback.added)
-    {
-        for(int j=0; j<SDR_SIZE; j++)
+        Concept *existing = &concepts[i];
+        if(Concept_Exists(existing))
         {
-            if(SDR_ReadBit(&(addedConcept->sdr), j))
+            double usefulness = Usage_usefulness(&existing->usage, currentTime);
+            if(usefulness <= leastUsefulness)
             {
-                int i = bitToConceptAmount[j]; //insert on top
-                bitToConcept[j][i] = addedConcept;
-                bitToConceptAmount[j]++;
-             }
-         }
-    }
-    if(feedback.evicted)
-    {
-        Concept *concept = feedback.evictedItem.address;
-        //if a concept was evicted, delete from voting structure
-        for(int j=0; j<SDR_SIZE; j++)
+                leastUsefulIndex = i;
+                leastUsefulness = usefulness;
+            }
+        }
+        else
         {
-            if(SDR_ReadBit(&(concept->sdr), j))
-            {
-                for(int i=0; i<bitToConceptAmount[j]; i++)
-                {
-                    if(bitToConcept[j][i] == (Concept*)feedback.evictedItem.address)
-                    {
-                        bitToConcept[j][i] = 0;
-                        //Now move the above ones down to remove the gap
-                        for(int k=i; k<bitToConceptAmount[j]-1; k++)
-                        {
-                            bitToConcept[j][k] = bitToConcept[j][k+1];
-                        }
-                        //and decrement the counter
-                        bitToConceptAmount[j]--;
-                        break; //already deleted  
-                    }
-                }
-             }
-         }
+            leastUsefulIndex = i;
+            break;
+        }
     }
-#endif
+    //2. assign concept to that position, setting SDR, attention, id, then return it
+    Concept *addedConcept = &concepts[leastUsefulIndex];
+    *addedConcept = (Concept) {0};
+    Concept_SetSDR(addedConcept, *sdr);
+    addedConcept->attention = *attention;
+    addedConcept->id = concept_id++;
     return addedConcept;
 }
 
-typedef struct
-{
-    Concept *concept;
-    int count;
-} Vote;
 bool Memory_getClosestConcept(Event *event, int *returnIndex)
 {
     SDR *eventSDR = &(event->sdr);
-    if(concepts.itemsAmount == 0)
+    if(Memory_FindConceptBySDR(&event->sdr, returnIndex)) //speed improvement
     {
-        return false;   
+        return true;
     }
-    int foundSameConcept_i;
-    if(Memory_FindConceptBySDR(&event->sdr, event->sdr_hash, &foundSameConcept_i))
+    int best_i = -1;
+    double bestValSoFar = -1;
+    for(int i=0; i<CONCEPTS_MAX; i++)
     {
-        *returnIndex = foundSameConcept_i;
-    }
-#if MATCH_STRATEGY == VOTING
-    Vote voting[CONCEPTS_MAX] = {0};
-    int votes = 0;
-    Vote best = {0};
-    for(int j=0; j<SDR_SIZE; j++)
-    {
-        if(SDR_ReadBit(eventSDR, j))
+        Concept *existing = &concepts[i];
+        if(Concept_Exists(existing))
         {
-            for(int i=0; i<bitToConceptAmount[j]; i++)
+            double curVal = Truth_Expectation(SDR_Inheritance(eventSDR, &(existing->sdr)));
+            if(curVal > bestValSoFar)
             {
-                int use_index = votes;
-                bool existed = false;
-                //check first if the SDR already got a vote
-                //and if yes, increment that one instead creating a new one
-                Concept *voted_concept = bitToConcept[j][i];
-                for(int h=0; h<votes; h++)
-                {
-                    if(voting[h].concept == voted_concept)
-                    {
-                        use_index = h;
-                        existed = true;
-                        break;
-                    }
-                }
-                voting[use_index].concept = voted_concept;
-                voting[use_index].count = existed ? voting[use_index].count+1 : 1;
-                if(voting[use_index].count > best.count)
-                {
-                    best = voting[use_index];
-                }
-                if(!existed)
-                {
-                    votes++;
-                }
+                bestValSoFar = curVal;
+                best_i = i;
             }
         }
     }
-    if(votes == 0)
-    {
-        return false;
-    }
-    //TODO IMPROVE:
-    int best_i = 0;
-    for(int i=0; i<concepts.itemsAmount; i++)
-    {
-        if(concepts.items[i].address == best.concept)
-        {
-            *returnIndex = best_i;
-            return true;
-        }
-    }
-    return false;
-#endif
-#if MATCH_STRATEGY == EXHAUSTIVE
-    int best_i = -1;
-    double bestValSoFar = -1;
-    for(int i=0; i<concepts.itemsAmount; i++)
-    {
-        double curVal = Truth_Expectation(SDR_Inheritance(eventSDR, &(((Concept*)concepts.items[i].address)->sdr)));
-        if(curVal > bestValSoFar)
-        {
-            bestValSoFar = curVal;
-            best_i = i;
-        }
-    }
     *returnIndex = best_i;
-    return true;
-#endif
+    return best_i != -1;
 }
 
-bool Memory_addEvent(Event *event)
+void Memory_addEvent(Event *event)
 {
     if(event_inspector != NULL)
     {
         (*event_inspector)(event);
     }
-    PriorityQueue_Push_Feedback feedback = PriorityQueue_Push(&events, event->attention.priority);
-    if(feedback.added)
+    //1. find event of lowest priority or, if available, an empty event
+    int leastPriorityIndex = 0;
+    double leastPriority = 1.0;
+    for(int i=0; i<CONCEPTS_MAX; i++)
     {
-        Event *toRecyle = feedback.addedItem.address;
-        *toRecyle = *event;
-        return true;
+        Event *existing = &events[i];
+        if(Event_Exists(existing))
+        {
+            double priority = (event->attention).priority;
+            if(priority <= leastPriority)
+            {
+                leastPriorityIndex = i;
+                leastPriority = priority;
+            }
+        }
+        else
+        {
+            leastPriorityIndex = i;
+            break;
+        }
     }
-    return false;
-}
-
-bool Memory_addConcept(Concept *concept)
-{
-    PriorityQueue_Push_Feedback feedback = PriorityQueue_Push(&concepts, concept->attention.priority);
-    if(feedback.added)
-    {
-        Concept *toRecyle = feedback.addedItem.address;
-        *toRecyle = *concept;
-        return true;
-    }
-    return false;
+    //2. assign event to that position, setting SDR, attention, id, then return it
+    Event *addedEvent = &events[leastPriorityIndex];
+    *addedEvent = *event;
 }
 
 void Memory_addOperation(Operation op)
 {
     operations[operations_index%OPERATIONS_MAX] = op;
     operations_index++;
+}
+
+int Memory_selectHighestPriorityEvents(int k, Event **selectedEvents)
+{
+    int selected = 0;
+    for(int h=0; h<k; h++)
+    {
+        selectedEvents[h] = NULL;
+    }
+    for(int i=0; i<EVENTS_MAX; i++) //go through all the events that exist
+    {
+        Event *existing = &events[i];
+        if(Event_Exists(existing))
+        {
+            for(int j=0; j<k; j++) //go from left to right in the selectedEvents to see where it belongs
+            {
+                //ok this place is empty we can just insert it here
+                if(!Event_Exists(selectedEvents[j]))
+                {
+                    selectedEvents[j] = existing; //inserted
+                    selected++;
+                    break;
+                }
+                //if it's higher priority, we have to insert here, but shift to the right first
+                if(existing->attention.priority > selectedEvents[j]->attention.priority)
+                {
+                    for(int j2=k-1; j2>j; j2--)
+                    {
+                        selectedEvents[j2] = selectedEvents[j2-1];
+                    }
+                    selectedEvents[j] = existing; //inserted
+                    break;
+                }
+                //if it's lower priority, we cannot insert it here, move to the right
+            }
+        }
+    }
+    return selected;
+}
+
+int Memory_selectHighestPriorityConcepts(int k, Concept **selectedConcepts)
+{
+    int selected = 0;
+    for(int h=0; h<k; h++)
+    {
+        selectedConcepts[h] = NULL;
+    }
+    for(int i=0; i<CONCEPTS_MAX; i++) //go through all the concepts that exist
+    {
+        Concept *existing = &concepts[i];
+        if(Concept_Exists(existing))
+        {
+            for(int j=0; j<k; j++) //go from left to right in the selectedEvents to see where it belongs
+            {
+                //ok this place is empty we can just insert it here
+                if(!Concept_Exists(selectedConcepts[j]))
+                {
+                    selectedConcepts[j] = existing; //inserted
+                    selected++;
+                    break;
+                }
+                //if it's higher priority, we have to insert here, but shift to the right first
+                if(existing->attention.priority > selectedConcepts[j]->attention.priority)
+                {
+                    for(int j2=k-1; j2>j; j2--)
+                    {
+                        selectedConcepts[j2] = selectedConcepts[j2-1];
+                    }
+                    selectedConcepts[j] = existing; //inserted
+                    break;
+                }
+                //if it's lower priority, we cannot insert it here, move to the right
+            }
+        }
+    }
+    return selected;
 }

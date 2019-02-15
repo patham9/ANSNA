@@ -4,7 +4,7 @@ void Event_SetSDR(Event *event, SDR sdr)
 {
     event->sdr = sdr;
     //Generate hash too:
-    event->sdr_hash = SDR_Hash(&sdr);
+    //event->sdr_hash = SDR_Hash(&sdr);
 }
 
 long base = 1;
@@ -33,4 +33,9 @@ void Event_Print(Event *event)
     Truth_Print(&event->truth);
     Stamp_print(&event->stamp);
     printf("occurrenceTime=%ld\n\n", event->occurrenceTime);
+}
+
+bool Event_Exists(Event *event)
+{
+    return event != NULL && event->type != EVENT_TYPE_DELETED;
 }

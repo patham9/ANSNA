@@ -39,6 +39,8 @@ typedef struct {
 void Concept_SetSDR(Concept *concept, SDR sdr);
 //print a concept
 void Concept_Print(Concept *concept);
+//whether concept exists
+bool Concept_Exists(Concept *concept);
 //Interpolate concepts, see https://github.com/patham9/ANSNA/wiki/Concept:-Conceptual-Interpolation
 void Concept_SDRInterpolation(Concept *concept, SDR *eventSDR, Truth matchTruth);
 
