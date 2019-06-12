@@ -10,7 +10,7 @@
 //Parameters//
 //----------//
 //confidence needed for executions
-#define DECISION_THRESHOLD 0.5
+static float DECISION_THRESHOLD = 0.5f;
 //motor babbling chance
 #define MOTOR_BABBLING_CHANCE 0.1
 
