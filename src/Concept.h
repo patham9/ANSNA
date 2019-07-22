@@ -33,9 +33,6 @@ typedef struct {
     //For concept interpolation:
     double sdr_bit_counter[SDR_SIZE];
     char debug[50];
-    //Anticipation:
-    Implication negConfirmation;
-    long deadline;
 } Concept;
 
 //Methods//

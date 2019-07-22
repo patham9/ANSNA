@@ -29,7 +29,6 @@ Decision MotorBabbling()
     return decision;
 }
 
-int stampID = -1;
 Decision RealizeGoal(Event *goal, long currentTime)
 {
     Decision decision = (Decision) {0};
@@ -100,15 +99,6 @@ Decision RealizeGoal(Event *goal, long currentTime)
         {
             return decision;
         }
-        
-        //ANTICIPATON (neg. evidence numbers for now)
-        postcon_c->deadline = currentTime + bestImp.occurrenceTimeOffset + bestImp.variance * ANTICIPATION_WINDOW;
-        postcon_c->negConfirmation = bestImp;
-        postcon_c->negConfirmation.truth = (Truth) { .frequency = 0.0, .confidence = 0.9 };
-        postcon_c->negConfirmation.stamp = (Stamp) { .evidentalBase = {-stampID} };
-        stampID--;
-        //EMD anticipation
-        
         //postcon_c->precondition_beliefs[best_i].array[best_j] = Inference_AssumptionOfFailure(&bestImp);
         IN_DEBUG
         (

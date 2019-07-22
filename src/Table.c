@@ -26,7 +26,7 @@ void Table_Remove(Table *table, int index)
     {
         table->array[j] = table->array[j+1];
     }
-    table->itemsAmount = MAX(0, table->itemsAmount);
+    table->itemsAmount = MAX(0, table->itemsAmount-1);
 }
 
 Implication Table_AddAndRevise(Table *table, Implication *imp, char *debug)

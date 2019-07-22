@@ -25,8 +25,7 @@ Implication Inference_BeliefInduction(Event *a, Event *b, bool postcondition)
     return  (Implication) { .sdr = postcondition ? b->sdr : a->sdr, 
                             .truth = Truth_Eternalize(Truth_Induction(truthA, truthB)),
                             .stamp = conclusionStamp,
-                            .occurrenceTimeOffset = b->occurrenceTime - a->occurrenceTime,
-                            .variance = b->occurrenceTime - a->occurrenceTime };
+                            .occurrenceTimeOffset = b->occurrenceTime - a->occurrenceTime };
 }
 
 //{Event a., Event a.} |- Event a.
@@ -48,8 +47,7 @@ Implication Inference_ImplicationRevision(Implication *a, Implication *b)
     Implication ret = (Implication) { .sdr = a->sdr,
                            .truth = Truth_Projection(Truth_Revision(a->truth, b->truth), a->occurrenceTimeOffset, b->occurrenceTimeOffset),
                            .stamp = conclusionStamp, 
-                           .occurrenceTimeOffset = (a->occurrenceTimeOffset + b->occurrenceTimeOffset)/2,
-                           .variance = MAX(a->variance, b->variance) };
+                           .occurrenceTimeOffset = (a->occurrenceTimeOffset + b->occurrenceTimeOffset)/2 };
     strcpy(ret.debug, a->debug);
     return ret;
 }

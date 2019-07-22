@@ -8,29 +8,6 @@ Event derivations[MAX_DERIVATIONS];
 //doing inference within the matched concept, returning the matched event
 Event LocalInference(Concept *c, int closest_concept_i, Event *e, long currentTime)
 {
-    if(c->deadline > 0)
-    {
-        if(currentTime > c->deadline)
-        {
-            //disappointed
-            Table_AddAndRevise(c->precondition_beliefs, &c->negConfirmation, c->negConfirmation.debug);
-            c->deadline = 0;
-            IN_DEBUG(
-                printf("DISAPPOINTED %s\n", c->debug);
-                getchar();
-            )
-        } 
-        else
-        if(e->type == EVENT_TYPE_BELIEF)
-        {
-            //confirmed
-            c->deadline = 0;
-            IN_DEBUG(
-                printf("CONFIRMED %s\n", c->debug);
-                getchar();
-            )
-        }
-    }
     //Matched event, see https://github.com/patham9/ANSNA/wiki/SDR:-SDRInheritance-for-matching,-and-its-truth-value
     strcpy(c->debug, e->debug);
     Event eMatch = *e;
@@ -86,6 +63,7 @@ Event ProcessEvent(Event *e, long currentTime)
     return eMatch;
 }
 
+int stampID = 0;
 void Cycle_Perform(long currentTime)
 {    
     IN_DEBUG
@@ -119,6 +97,10 @@ void Cycle_Perform(long currentTime)
                 int operationID = precondition->operationID;
                 if(operationID != 0)
                 {
+                    if(k >= SEQUENCE_SPAN)
+                    {
+                        continue;
+                    }
                     for(int j=k+1; j<belief_events.itemsAmount; j++)
                     {
                         precondition = FIFO_GetKthNewestElement(&belief_events, j);
@@ -130,7 +112,72 @@ void Cycle_Perform(long currentTime)
                 }
                 else
                 {
-                    RuleTable_Composition(currentTime, precondition, &postcondition, operationID);
+                    //RuleTable_Composition(currentTime, precondition, &postcondition, operationID); (A =/> B) not used yet
+                    //anticipation below not supported yet
+                }
+            }
+        }
+    }
+    //2. process oldest event
+    if(belief_events.itemsAmount == FIFO_SIZE)
+    {
+        int k = belief_events.itemsAmount-1;
+        Event *precondition = FIFO_GetKthNewestElement(&belief_events, k);
+        int closest_concept_i;
+        Concept *c = NULL;
+        if(Memory_getClosestConcept(&precondition->sdr, precondition->sdr_hash, &closest_concept_i))
+        {
+            c = concepts.items[closest_concept_i].address;
+            
+        }
+        for(int j=k-1; j>=0; j--)
+        {
+            for(int op_i=1; op_i<OPERATIONS_MAX; op_i++)
+            {
+                for(int prec_i=0; prec_i<c->precondition_beliefs[op_i].itemsAmount; prec_i++)
+                {
+                    Implication link = c->precondition_beliefs[op_i].array[prec_i];
+                    //search for operator
+                    for(int h=j-1; h>=j-1-SEQUENCE_SPAN; h--)
+                    {
+                        Event *potential_op = FIFO_GetKthNewestElement(&belief_events, h);
+                        if(potential_op->operationID == op_i)
+                        {
+                            //make sure consequent does not exist
+                            for(int l=h-1; l>=0; l--)
+                            {
+                                Event *postcondition = FIFO_GetKthNewestElement(&belief_events, l);
+                                if(postcondition->sdr_hash == link.sdr_hash && SDR_Equal(&link.sdr, &postcondition->sdr))
+                                {
+                                    goto CONFIRM;
+                                }
+                            }
+                            //Disappointment!
+                            Implication negConfirmation = link;
+                            negConfirmation.truth = (Truth) { .frequency = 0.0, .confidence = 0.001 };
+                            negConfirmation.stamp = (Stamp) { .evidentalBase = {-stampID} };
+                            Implication ret = Table_AddAndRevise(&c->precondition_beliefs[op_i], &negConfirmation, negConfirmation.debug);
+                            IN_DEBUG(
+                                printf("DISAPPOINTED %s\n", c->debug);
+                                //for(int u = 0; u<c->precondition_beliefs[op_i].itemsAmount; u++)
+                                //{
+                                //    Implication_Print(&c->precondition_beliefs[op_i].array[u]);
+                                //}
+                                Implication_Print(&ret);
+                                printf("END\n");
+                                printf("______\n");
+                                getchar();
+                            )
+                            
+                            break; //disappoint once only for each precondition going out of scope
+                        }
+                    }
+                    //Confirmation, nothing to be done
+                    CONFIRM:;
+                    IN_DEBUG(
+                        printf("CONFIRMED %s\n", c->debug);
+                        getchar();
+                    )
                 }
             }
         }

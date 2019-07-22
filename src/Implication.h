@@ -14,7 +14,6 @@ typedef struct {
     Truth truth;
     Stamp stamp;
     long occurrenceTimeOffset;
-    long variance;
     char debug[50]; //++ DEBUG
 } Implication;
 

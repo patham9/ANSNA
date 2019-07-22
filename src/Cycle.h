@@ -18,6 +18,7 @@
 #define EVENT_SELECTIONS 5
 //for temporal induction:
 #define CONCEPT_SELECTIONS 5
+#define SEQUENCE_SPAN FIFO_SIZE/2
 
 //Methods//
 //-------//
