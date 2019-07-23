@@ -5,7 +5,11 @@ void Table_Add(Table *table, Implication *imp)
     double impTruthExp = Truth_Expectation(imp->truth);
     for(int i=0; i<TABLE_SIZE; i++)
     {
-        if(i==table->itemsAmount || impTruthExp > Truth_Expectation(table->array[i].truth))
+        bool same_term = (table->array[i].sdr_hash == imp->sdr_hash && SDR_Equal(&table->array[i].sdr,&imp->sdr));
+        //either it's not yet full and we reached a new space,
+        //or the term is different and the truth expectation is higher
+        //or the term is the same and the confidence is higher
+        if(i==table->itemsAmount || (!same_term && impTruthExp > Truth_Expectation(table->array[i].truth)) || (same_term && imp->truth.confidence > table->array[i].truth.confidence))
         {
             //ok here it has to go, move down the rest, evicting the last element if we hit TABLE_SIZE-1.
             for(int j=MIN(table->itemsAmount, TABLE_SIZE-1); j>i; j--)
@@ -17,16 +21,6 @@ void Table_Add(Table *table, Implication *imp)
             return;
         }
     }
-}
-
-void Table_Remove(Table *table, int index)
-{
-    //move up the rest beginning at index
-    for(int j=index; j<table->itemsAmount-1; j++)
-    {
-        table->array[j] = table->array[j+1];
-    }
-    table->itemsAmount = MAX(0, table->itemsAmount-1);
 }
 
 Implication Table_AddAndRevise(Table *table, Implication *imp, char *debug)
@@ -51,8 +45,7 @@ Implication Table_AddAndRevise(Table *table, Implication *imp, char *debug)
         Implication revised = Inference_ImplicationRevision(OldImp, imp);
         strcpy(revised.debug, debug);
         Implication_SetSDR(&revised, imp->sdr); //update sdr hash
-            //printf("AAA %s  %.02f,%.02f\n", revised.debug, revised.truth.frequency, revised.truth.confidence); //++
-        Table_Remove(table, best_i);
+        //printf("AAA %s  %.02f,%.02f\n", revised.debug, revised.truth.frequency, revised.truth.confidence); //++
         Table_Add(table, &revised);
         RetRevised = revised;
     }
