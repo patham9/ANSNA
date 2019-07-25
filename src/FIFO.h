@@ -15,6 +15,8 @@
 //Parameters//
 //----------//
 #define FIFO_SIZE 10
+#define MAX_SEQUENCE_LEN 10
+#define SDR_MAX_SATURATION SDR_SIZE/4
 
 //Data structure//
 //--------------//
@@ -49,5 +51,7 @@ FIFO_Query_Result FIFO_GetHighestConfidentProjectedTo(FIFO *fifo, long occurrenc
 Event* FIFO_GetNewestElement(FIFO *fifo);
 //Get the k-th newest FIFO element
 Event* FIFO_GetKthNewestElement(FIFO *fifo, int k);
+//Get sample k and as many previous as needed to saturate the SDR
+Event FIFO_GetKthNewestElementSequence(FIFO *fifo, int k);
 
 #endif

@@ -106,6 +106,41 @@ Event* FIFO_GetKthNewestElement(FIFO *fifo, int k)
     return &fifo->array[index];
 }
 
+Event FIFO_GetKthNewestElementSequence(FIFO *fifo, int k)
+{
+    if(fifo->itemsAmount == 0)
+    {
+        return (Event) {0};
+    }
+    Event *element = FIFO_GetKthNewestElement(fifo, k);
+    if(element != NULL)
+    {
+        SDR contextSDR = {0};
+        Event sequence = *element;
+        for(int h=1; h<MAX_SEQUENCE_LEN; h++)
+        {
+            if(SDR_CountTrue(&sequence.sdr) > SDR_MAX_SATURATION)
+            {
+                break;
+            }
+            int index = fifo->currentIndex - 1 - (h+k);
+            if(index < 0)
+            {
+                index = FIFO_SIZE+index;
+            }
+            Event *ev = &fifo->array[index];
+            if(ev->type == EVENT_TYPE_DELETED)
+            {
+                break;
+            }
+            contextSDR = SDR_Tuple(&contextSDR, &ev->sdr);
+            sequence.sdr = SDR_Union(&contextSDR, &element->sdr);
+        }
+        return sequence;
+    }
+    return (Event) {0};
+}
+
 Event* FIFO_GetNewestElement(FIFO *fifo)
 {
     return FIFO_GetKthNewestElement(fifo, 0);
