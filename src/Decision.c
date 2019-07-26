@@ -39,6 +39,7 @@ Decision Decision_RealizeGoal(Event *goal, long currentTime)
     {
         Concept *postcon_c = concepts.items[closest_postcon_concept_i].address;
         double bestTruthExpectation = 0;
+        double bestValue = 0;
         Implication bestImp = {0};
         Concept *precon_concept;
         for(int i=1; i<OPERATIONS_MAX; i++)
@@ -70,8 +71,9 @@ Decision Decision_RealizeGoal(Event *goal, long currentTime)
                         }
                         Event ContextualOperation = Inference_GoalDeduction(goal, &imp); //(&/,a,op())!
                         ContextualOperation.truth = Truth_Projection(ContextualOperation.truth, ContextualOperation.occurrenceTime, currentTime);
-                        double operationGoalTruthExpectation = context_penalty*Truth_Expectation(Truth_Deduction(ContextualOperation.truth, Truth_Projection(precondition->truth, precondition->occurrenceTime, currentTime))); //op()! //TODO project to now
-                        if(operationGoalTruthExpectation > bestTruthExpectation)
+                        double operationGoalTruthExpectation = Truth_Expectation(Truth_Deduction(ContextualOperation.truth, Truth_Projection(precondition->truth, precondition->occurrenceTime, currentTime))); //op()! //TODO project to now
+                        double value = context_penalty * operationGoalTruthExpectation;
+                        if(value > bestValue)
                         {
                             IN_DEBUG
                             (
@@ -90,6 +92,7 @@ Decision Decision_RealizeGoal(Event *goal, long currentTime)
                             bestImp = imp;
                             decision.operationID = i;
                             bestTruthExpectation = operationGoalTruthExpectation;
+                            bestValue = value;
                         }
                     }
                 }

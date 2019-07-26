@@ -544,6 +544,68 @@ void ANSNA_Multistep2_Test()
     ANSNA_Lightswitch_ActivateSwitch_executed = false;
     puts("<<ANSNA Multistep2 test successful");
 }
+bool ANSNA_Go_Right_executed = false;
+void ANSNA_Go_Right()
+{
+    ANSNA_Go_Right_executed = true;
+    puts("ANSNA invoked right");
+}
+bool ANSNA_Go_Left_executed = false;
+void ANSNA_Go_Left()
+{
+    ANSNA_Go_Left_executed = true;
+    puts("ANSNA invoked right");
+}
+bool ANSNA_Goto_Middle_executed = false;
+void ANSNA_Goto_Middle()
+{
+    ANSNA_Goto_Middle_executed = true;
+    puts("ANSNA invoked right");
+}
+void ANSNA_Multistep3_Test()
+{
+    MOTOR_BABBLING_CHANCE = 0;
+    puts(">>ANSNA Multistep3 test start");
+    OUTPUT = 0;
+    ANSNA_INIT();
+    ANSNA_AddOperation(Encode_Term("op_goto_middle"), ANSNA_Goto_Middle); 
+    ANSNA_AddOperation(Encode_Term("op_go_right"), ANSNA_Go_Right); 
+    for(int i=0; i<50; i++)
+    {
+        ANSNA_AddInputBelief(Encode_Term("north_at"));
+        ANSNA_AddInputBelief(Encode_Term("op_goto_middle"));
+        ANSNA_Cycles(5);
+        ANSNA_AddInputBelief(Encode_Term("middle_at"));
+        ANSNA_AddInputBelief(Encode_Term("op_go_right"));
+        ANSNA_Cycles(5);
+        ANSNA_AddInputBelief(Encode_Term("goal_at"));
+        ANSNA_Cycles(100);
+    }
+    ANSNA_Cycles(1000);
+    for(int i=0; i<50; i++)
+    {
+        ANSNA_AddInputBelief(Encode_Term("south_at"));
+        ANSNA_AddInputBelief(Encode_Term("op_goto_middle"));
+        ANSNA_Cycles(5);
+        ANSNA_AddInputBelief(Encode_Term("middle_at"));
+        ANSNA_AddInputBelief(Encode_Term("op_go_left"));
+        ANSNA_Cycles(5);
+        ANSNA_AddInputBelief(Encode_Term("goal_at"));
+        ANSNA_Cycles(100);
+    }
+    ANSNA_Cycles(1000);
+    ANSNA_AddInputBelief(Encode_Term("south_at"));
+    ANSNA_AddInputGoal(Encode_Term("goal_at"));
+    ANSNA_Cycles(100);
+    assert(ANSNA_Goto_Middle_executed && !ANSNA_Go_Right_executed && !ANSNA_Go_Left_executed, "ANSNA needs to go to the middle first (3)");
+    ANSNA_Goto_Middle_executed = false;
+    puts("ANSNA arrived at the middle");
+    ANSNA_AddInputBelief(Encode_Term("middle_at"));
+    ANSNA_AddInputGoal(Encode_Term("goal_at"));
+    assert(!ANSNA_Lightswitch_GotoSwitch_executed && !ANSNA_Go_Right_executed && ANSNA_Go_Left_executed, "ANSNA needs to go left (3)");
+    ANSNA_Go_Left_executed = false;
+    puts("<<ANSNA Multistep3 test successful");
+}
 
 int main(int argc, char *argv[]) 
 {
@@ -573,6 +635,7 @@ int main(int argc, char *argv[])
     ANSNA_Follow_Test();
     ANSNA_Multistep_Test();
     ANSNA_Multistep2_Test();
+    ANSNA_Multistep3_Test();
     puts("\nAll tests ran successfully, if you wish to run examples now, just pass the corresponding parameter:");
     puts("ANSNA pong (starts Pong example)");
     puts("ANSNA numeric-pong (starts Pong example with numeric input)");
