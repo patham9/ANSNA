@@ -111,7 +111,7 @@ void Cycle_Perform(long currentTime)
     (
         for(int i=0; i<belief_events.itemsAmount; i++)
         {
-            Event *ev = FIFO_GetKthNewestSequence(&belief_events, i);
+            Event *ev = FIFO_GetKthNewestElement(&belief_events, i);
             puts(ev->debug);
             puts("");
         }
@@ -126,7 +126,7 @@ void Cycle_Perform(long currentTime)
     //1. process newest event
     if(belief_events.itemsAmount > 0)
     {
-        Event *toProcess = FIFO_GetNewestSequence(&belief_events);
+        Event *toProcess = FIFO_GetNewestElement(&belief_events);
         if(!toProcess->processed)
         {
             //the matched event becomes the postcondition
@@ -138,14 +138,14 @@ void Cycle_Perform(long currentTime)
             }
             for(int k=1; k<belief_events.itemsAmount; k++)
             {
-                Event *precondition = FIFO_GetKthNewestSequence(&belief_events, k);
+                Event *precondition = FIFO_GetKthNewestElement(&belief_events, k);
                 //if it's an operation find the real precondition and use the current one as action
                 int operationID = precondition->operationID;
                 if(operationID != 0)
                 {
                     for(int j=k+1; j<belief_events.itemsAmount; j++)
                     {
-                        precondition = FIFO_GetKthNewestSequence(&belief_events, j);
+                        precondition = FIFO_GetKthNewestElement(&belief_events, j);
                         if(precondition->operationID == 0)
                         {
                             RuleTable_Composition(precondition, &postcondition, operationID);
@@ -162,7 +162,7 @@ void Cycle_Perform(long currentTime)
     //process goals
     if(goal_events.itemsAmount > 0)
     {
-        Event *goal = FIFO_GetNewestSequence(&goal_events);
+        Event *goal = FIFO_GetNewestElement(&goal_events);
         if(!goal->processed)
         {
             ProcessEvent(goal, currentTime);

@@ -26,6 +26,7 @@ typedef struct {
     int operationID; //automatically obtained from SDR on input
     bool processed;
     char debug[30];
+    SDR context;
 } Event;
 
 //Methods//

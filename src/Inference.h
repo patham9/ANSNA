@@ -16,6 +16,10 @@
 #include "Implication.h"
 #include <string.h>
 
+//Parameters//
+//----------//
+#define CONCEPT_INTERPOLATION_INIT_STRENGTH 1.0
+
 //Methods//
 //-------//
 //{Event a., Event b.} |- Event (&/,a,b).

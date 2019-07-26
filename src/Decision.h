@@ -21,6 +21,8 @@ extern double MOTOR_BABBLING_CHANCE;
 #define ANTICIPATION_WINDOW 10.0
 //confidence of anticipation
 #define ANTICIPATION_CONFIDENCE 0.1
+//Use link context
+#define LINK_CONTEXT false
 
 //Data structure//
 //--------------//

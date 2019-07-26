@@ -27,11 +27,19 @@ Event Inference_BeliefIntersection(Event *a, Event *b)
 Implication Inference_BeliefInduction(Event *a, Event *b, bool postcondition)
 {
     DERIVATION_STAMP_AND_TIME(a,b)
-    return  (Implication) { .sdr = postcondition ? b->sdr : a->sdr, 
-                            .truth = Truth_Eternalize(Truth_Induction(truthA, truthB)),
-                            .stamp = conclusionStamp,
-                            .occurrenceTimeOffset = b->occurrenceTime - a->occurrenceTime,
-                            .variance = b->occurrenceTime - a->occurrenceTime };
+    Implication ret =  (Implication) { .sdr = postcondition ? b->sdr : a->sdr, 
+                                       .truth = Truth_Eternalize(Truth_Induction(truthA, truthB)),
+                                       .stamp = conclusionStamp,
+                                       .occurrenceTimeOffset = b->occurrenceTime - a->occurrenceTime,
+                                       .variance = b->occurrenceTime - a->occurrenceTime,
+                                       .context = a->context };
+    int k = 0;
+    ITERATE_SDR_BITS(i,j,
+        ret.context_sdr_bit_counter[k] = SDR_ReadBitInBlock(&ret.sdr, i, j) ? 1.0 : -1.0;
+        ret.context_sdr_bit_counter[k] *= CONCEPT_INTERPOLATION_INIT_STRENGTH;
+        k++;
+    )
+    return ret;
 }
 
 //{Event a., Event a.} |- Event a.
@@ -56,6 +64,7 @@ Implication Inference_ImplicationRevision(Implication *a, Implication *b)
                            .occurrenceTimeOffset = weighted_average(a->occurrenceTimeOffset, b->occurrenceTimeOffset, a->truth.confidence, b->truth.confidence),
                            .variance = weighted_average(a->variance, b->variance, a->truth.confidence, b->truth.confidence) };
     strcpy(ret.debug, a->debug);
+    Implication_ContextSDRInterpolation(&ret, a, b);
     return ret;
 }
 

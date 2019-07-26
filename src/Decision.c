@@ -63,9 +63,14 @@ Decision Decision_RealizeGoal(Event *goal, long currentTime)
                     Event * precondition = &current_precon_c->belief_spike; //a. :|:
                     if(precondition != NULL)
                     {
+                        double context_penalty = 1.0;
+                        if(LINK_CONTEXT)
+                        {
+                            context_penalty = Truth_Expectation(SDR_Inheritance(&precondition->context, &imp.context));
+                        }
                         Event ContextualOperation = Inference_GoalDeduction(goal, &imp); //(&/,a,op())!
                         ContextualOperation.truth = Truth_Projection(ContextualOperation.truth, ContextualOperation.occurrenceTime, currentTime);
-                        double operationGoalTruthExpectation = Truth_Expectation(Truth_Deduction(ContextualOperation.truth, Truth_Projection(precondition->truth, precondition->occurrenceTime, currentTime))); //op()! //TODO project to now
+                        double operationGoalTruthExpectation = context_penalty*Truth_Expectation(Truth_Deduction(ContextualOperation.truth, Truth_Projection(precondition->truth, precondition->occurrenceTime, currentTime))); //op()! //TODO project to now
                         if(operationGoalTruthExpectation > bestTruthExpectation)
                         {
                             IN_DEBUG
