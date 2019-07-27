@@ -1,5 +1,43 @@
 #include "Cycle.h"
 
+static Event Increased_Action_Potential(Event *existing_potential, Event *incoming_spike, long currentTime)
+{
+    if(existing_potential->type == EVENT_TYPE_DELETED)
+    {
+        return *incoming_spike;
+    }
+    else
+    {
+        double expExisting = Truth_Expectation(Inference_EventUpdate(existing_potential, currentTime).truth);
+        double expIncoming = Truth_Expectation(Inference_EventUpdate(incoming_spike, currentTime).truth);
+        //check if there is evidental overlap
+        bool overlap = Stamp_checkOverlap(&incoming_spike->stamp, &existing_potential->stamp);
+        //if there is, apply choice, keeping the stronger one:
+        if(overlap)
+        {
+            if(expIncoming > expExisting)
+            {
+                return *incoming_spike;
+            }
+        }
+        else
+        //and else revise, increasing the "activation potential"
+        {
+            Event revised_spike = Inference_EventRevision(existing_potential, incoming_spike);
+            if(revised_spike.truth.confidence >= existing_potential->truth.confidence)
+            {
+                return revised_spike;
+            }
+            //lower, also use choice
+            if(expIncoming > expExisting)
+            {
+                return *incoming_spike;
+            }
+        }
+    }
+    return *existing_potential;
+}
+
 static Event MatchEventToConcept(Concept *c, Event *e)
 {
     Event eMatch = *e;
@@ -20,7 +58,7 @@ static Event LocalInference(Concept *c, Event *e, long currentTime)
         //add event as spike to the concept:
         if(eMatch.type == EVENT_TYPE_BELIEF)
         {
-            c->belief_spike = eMatch;
+            c->incoming_belief_spike = eMatch;
         }
         else
         {
@@ -73,36 +111,6 @@ static Event ProcessEvent(Event *e, long currentTime)
         }
     }
     return eMatch;
-}
-
-Event Increased_Action_Potential(Event *existing_potential, Event *incoming_spike, long currentTime)
-{
-    Event ret_spike = *existing_potential;
-    if(existing_potential->type == EVENT_TYPE_DELETED)
-    {
-        ret_spike = *incoming_spike;
-    }
-    else
-    {
-        double expExisting = Truth_Expectation(Truth_Projection(existing_potential->truth, existing_potential->occurrenceTime, currentTime));
-        double expIncoming = Truth_Expectation(Truth_Projection(incoming_spike->truth, incoming_spike->occurrenceTime, currentTime));
-        //check if there is evidental overlap
-        bool overlap = Stamp_checkOverlap(&incoming_spike->stamp, &existing_potential->stamp);
-        //if there is, apply choice, keeping the stronger one:
-        if(overlap)
-        {
-            if(expIncoming > expExisting)
-            {
-                ret_spike = *incoming_spike;
-            }
-        }
-        else
-        //and else revise, increasing the "activation potential"
-        {
-            ret_spike = Inference_EventRevision(existing_potential, incoming_spike);
-        }
-    }
-    return ret_spike;
 }
 
 void Cycle_Perform(long currentTime)
@@ -190,7 +198,7 @@ void Cycle_Perform(long currentTime)
         for(int i=0; i<concepts.itemsAmount; i++)
         {
             Concept *c = concepts.items[i].address;
-            if(c->goal_spike.type != EVENT_TYPE_DELETED)
+            if(c->goal_spike.type != EVENT_TYPE_DELETED || c->belief_spike.type != EVENT_TYPE_DELETED)
             {
                 for(int opi=0; opi<OPERATIONS_MAX; opi++)
                 {
@@ -201,9 +209,24 @@ void Cycle_Perform(long currentTime)
                         if(Memory_getClosestConcept(preSDR, SDR_Hash(preSDR), &closest_concept_i)) //todo cache it, maybe in the function
                         {
                             Concept *pre = concepts.items[closest_concept_i].address;
-                            if(pre->incoming_goal_spike.type == EVENT_TYPE_DELETED || pre->incoming_goal_spike.processed)
+                            if(c->goal_spike.type != EVENT_TYPE_DELETED)
                             {
-                                pre->incoming_goal_spike = Inference_GoalDeduction(&c->goal_spike, &c->precondition_beliefs[opi].array[j]);
+                                Event incoming_spike = Inference_GoalDeduction(&c->goal_spike, &c->precondition_beliefs[opi].array[j]);
+                                pre->incoming_goal_spike = Increased_Action_Potential(&pre->incoming_goal_spike, &incoming_spike, currentTime);
+                            }
+                        }
+                    }
+                    for(int j=0; j<c->postcondition_beliefs[opi].itemsAmount; j++)
+                    {
+                        SDR *postSDR = &c->postcondition_beliefs[opi].array[j].sdr;
+                        int closest_concept_i;
+                        if(Memory_getClosestConcept(postSDR, SDR_Hash(postSDR), &closest_concept_i)) //todo cache it, maybe in the function
+                        {
+                            Concept *post = concepts.items[closest_concept_i].address;
+                            if(c->goal_spike.type != EVENT_TYPE_DELETED)
+                            {
+                                Event incoming_spike = Inference_GoalAbduction(&c->goal_spike, &c->postcondition_beliefs[opi].array[j]);
+                                post->incoming_goal_spike = Increased_Action_Potential(&post->incoming_goal_spike, &incoming_spike, currentTime);
                             }
                         }
                     }
@@ -220,10 +243,15 @@ void Cycle_Perform(long currentTime)
                 if(c->goal_spike.type != EVENT_TYPE_DELETED && !c->goal_spike.processed)
                 {
                     c->goal_spike.processed = true;
-                    if(Decision_Making(&c->goal_spike, currentTime))
-                    {
-                        c->goal_spike = (Event) {0}; //don't propagate further
-                    }
+                    Decision_Making(&c->goal_spike, currentTime);
+                }
+            }
+            if(c->incoming_belief_spike.type != EVENT_TYPE_DELETED)
+            {
+                c->belief_spike = Increased_Action_Potential(&c->belief_spike, &c->incoming_belief_spike, currentTime);
+                if(c->belief_spike.type != EVENT_TYPE_DELETED && !c->belief_spike.processed)
+                {
+                    c->belief_spike.processed = true;
                 }
             }
             c->incoming_goal_spike = (Event) {0};
