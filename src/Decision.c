@@ -116,7 +116,7 @@ Decision Decision_RealizeGoal(Event *goal, long currentTime)
                 stampID--;
             }
         }
-        //EMD anticipation
+        //END anticipation
         IN_DEBUG
         (
             printf("%s %f,%f",bestImp.debug, bestImp.truth.frequency, bestImp.truth.confidence);

@@ -202,15 +202,11 @@ void Cycle_Perform(long currentTime)
                 {
                     for(int j=0; j<c->precondition_beliefs[opi].itemsAmount; j++)
                     {
-                        SDR *preSDR = &c->precondition_beliefs[opi].array[j].sdr;
-                        int closest_concept_i;
-                        if(Memory_getClosestConcept(preSDR, SDR_Hash(preSDR), &closest_concept_i)) //todo cache it, maybe in the function
+                        Implication *imp = &c->precondition_beliefs[opi].array[j];
+                        Concept *pre = imp->sourceConcept;
+                        if((pre->incoming_goal_spike.type == EVENT_TYPE_DELETED || pre->incoming_goal_spike.processed) && SDR_Equal(&pre->sdr, &imp->sourceConceptSDR))
                         {
-                            Concept *pre = concepts.items[closest_concept_i].address;
-                            if(pre->incoming_goal_spike.type == EVENT_TYPE_DELETED || pre->incoming_goal_spike.processed)
-                            {
-                                pre->incoming_goal_spike = Inference_GoalDeduction(&c->goal_spike, &c->precondition_beliefs[opi].array[j]);
-                            }
+                            pre->incoming_goal_spike = Inference_GoalDeduction(&c->goal_spike, &c->precondition_beliefs[opi].array[j]);
                         }
                     }
                 }

@@ -16,6 +16,10 @@ typedef struct {
     long occurrenceTimeOffset;
     long variance;
     long revisions;
+    //for efficient spike propagation without searching memory
+    void *sourceConcept;
+    SDR sourceConceptSDR;
+    //debig string
     char debug[100]; //++ DEBUG
 } Implication;
 
