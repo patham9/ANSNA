@@ -45,6 +45,7 @@ Event* FIFO_GetKthNewestSequence(FIFO *fifo, int k, int len)
     {
         index = FIFO_SIZE+index;
     }
+    IN_INTEGRITY_CHECK( assert(fifo->array[len][index].type==EVENT_TYPE_DELETED || SDR_CountTrue(&fifo->array[len][index].sdr) > 0, "FIFO_GetKthNewestSequence: An SDR has to have at least 1 1-bit"); )
     return &fifo->array[len][index];
 }
 

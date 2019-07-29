@@ -26,7 +26,7 @@ Event Inference_BeliefIntersection(Event *a, Event *b)
 //{Event a., Event b., after(b,a)} |- Implication <a =/> b>.
 Implication Inference_BeliefInduction(Event *a, Event *b)
 {
-    assert(b->occurrenceTime > a->occurrenceTime, "after(b,a) violated in Inference_BeliefInduction");
+    IN_INTEGRITY_CHECK( assert(b->occurrenceTime > a->occurrenceTime, "after(b,a) violated in Inference_BeliefInduction"); )
     DERIVATION_STAMP_AND_TIME(a,b)
     return  (Implication) { .sdr = a->sdr, 
                             .truth = Truth_Eternalize(Truth_Induction(truthA, truthB)),

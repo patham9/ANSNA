@@ -35,10 +35,10 @@ bool Memory_FindConceptBySDR(SDR *sdr, SDR_HASH_TYPE sdr_hash, int *returnIndex,
 {
     for(int i=0; i<concepts.itemsAmount; i++)
     {
-        Concept *existing = concepts.items[i].address;
-        if(!USE_HASHING || existing->sdr_hash == sdr_hash)
+        Concept *c = concepts.items[i].address;
+        if(!USE_HASHING || c->sdr_hash == sdr_hash)
         {
-            if(SDR_Equal(&existing->sdr, sdr) && (!alive || existing->alive))
+            if(((!alive && !c->alive) || (alive && c->alive)) && SDR_Equal(&c->sdr, sdr))
             {
                 if(returnIndex != NULL)
                 {
@@ -82,7 +82,7 @@ bool Memory_getClosestConcept(SDR *sdr, SDR_HASH_TYPE sdr_hash, int *returnIndex
     for(int i=0; i<concepts.itemsAmount; i++)
     {
         Concept *c = (Concept*) concepts.items[i].address;
-        if(!alive || c->alive)
+        if((!alive && !c->alive) || (alive && c->alive))
         {
             double curVal = Truth_Expectation(SDR_Inheritance(sdr, &c->sdr));
             if(curVal > bestValSoFar)

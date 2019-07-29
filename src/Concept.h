@@ -32,6 +32,7 @@ typedef struct {
     long anticipation_deadline[ANTICIPATIONS_MAX];
     int anticipation_operation_id[ANTICIPATIONS_MAX];
     bool alive;
+    int become_alive_threshold;
     //For debugging:
     char debug[50];
 } Concept;

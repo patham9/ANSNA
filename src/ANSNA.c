@@ -25,7 +25,7 @@ void ANSNA_Cycles(int cycles)
 Event ANSNA_AddInput(SDR sdr, char type, Truth truth)
 {
     Event ev = Event_InputEvent(sdr, type, truth, currentTime);
-    int closest_concept_i=0;
+    int closest_concept_i = 0;
     if(Memory_getClosestConcept(&sdr, SDR_Hash(&sdr), &closest_concept_i, true))
     {
         Concept *c = concepts.items[closest_concept_i].address;

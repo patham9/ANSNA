@@ -78,6 +78,7 @@ static Event LocalInference(Concept *c, Event *e, long currentTime)
 
 static Event ProcessEvent(Event *e, long currentTime)
 {
+    IN_INTEGRITY_CHECK( assert(SDR_CountTrue(&e->sdr) > 0, "An SDR has to have at least 1 1-bit"); )
     e->processed = true;
     Event_SetSDR(e, e->sdr); // TODO make sure that hash needs to be calculated once instead already
     IN_DEBUG( puts("Event was selected:"); Event_Print(e); )
@@ -91,31 +92,35 @@ static Event ProcessEvent(Event *e, long currentTime)
         //perform concept-related inference
         eMatch = LocalInference(c, e, currentTime);
     }
-    if(!Memory_FindConceptBySDR(&e->sdr, e->sdr_hash, NULL, true))
+    if(!Memory_FindConceptBySDR(&e->sdr, e->sdr_hash, NULL, true) && !Memory_FindConceptBySDR(&e->sdr, e->sdr_hash, NULL, false))
     {   
-        //if different enough
-        bool different_enough = true;
-        if(c != NULL)
+        Concept *specialConcept = Memory_Conceptualize(&e->sdr);
+        if(c == NULL)
         {
-            double novelty = 1.0 - Truth_Expectation(SDR_Similarity(&e->sdr, &eMatch.sdr));
-            if(novelty < CONCEPT_FORMATION_NOVELTY)
-            {
-                different_enough = false;
-            }
-        }
-        if(different_enough)
-        {
-            //add a new concept for e too at the end, as it does not exist already
-            Concept *specialConcept = Memory_Conceptualize(&e->sdr);
+            //there is no father concept, so it's maximum unfamiliar, in that case we just create it
             specialConcept->alive = true;
-            if(specialConcept != NULL && c != NULL)
+        }
+        else
+        {
+            double familiarity = Truth_Expectation(SDR_Similarity(&e->sdr, &eMatch.sdr));
+            specialConcept->become_alive_threshold = (int) (((double) CONCEPT_USE_TO_BE_ALIVE_THRESHOLD) * familiarity);
+        }
+    }
+    //also match to not alive concepts which will have a more accurate candidate that becomes a own concept if matched often
+    if(c != NULL && Memory_FindConceptBySDR(&e->sdr, e->sdr_hash, &closest_concept_i, false))
+    {
+        //the new distinction that is not alive yet
+        Concept *specialConcept = concepts.items[closest_concept_i].address;
+        specialConcept->usage = Usage_use(&specialConcept->usage, currentTime);
+        if(specialConcept->usage.useCount > specialConcept->become_alive_threshold)
+        {
+            specialConcept->alive = true;
+            //copy over all knowledge
+            for(int i=0; i<OPERATIONS_MAX; i++)
             {
-                //copy over all knowledge
-                for(int i=0; i<OPERATIONS_MAX; i++)
-                {
-                    Table_COPY(&c->precondition_beliefs[i],  &specialConcept->precondition_beliefs[i]);
-                }
+                Table_COPY(&c->precondition_beliefs[i],  &specialConcept->precondition_beliefs[i]);
             }
+            
         }
     }
     return eMatch;
@@ -146,7 +151,7 @@ void Cycle_Perform(long currentTime)
         for(int len=0; len<MAX_SEQUENCE_LEN; len++)
         {
             Event *toProcess = FIFO_GetNewestSequence(&belief_events, len);
-            if(!toProcess->processed)
+            if(!toProcess->processed && toProcess->type != EVENT_TYPE_DELETED)
             {
                 //the matched event becomes the postcondition
                 Event postcondition = ProcessEvent(toProcess, currentTime);

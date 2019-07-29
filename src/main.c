@@ -202,8 +202,10 @@ void ANSNA_Alphabet_Test()
         int k=i%10;
         if(i % 3 == 0)
         {
-            char c[2] = {'a'+k,0};
-            ANSNA_AddInput(Encode_Term(c), EVENT_TYPE_BELIEF, ANSNA_DEFAULT_TRUTH);
+            char c[2] = {'a'+k, 0};
+            SDR s = Encode_Term(c);
+            assert(SDR_CountTrue(&s) == TERM_ONES, "Term encoder didn't choose the specified amount of 1's as 1-bits");
+            ANSNA_AddInput(s, EVENT_TYPE_BELIEF, ANSNA_DEFAULT_TRUTH);
         }
         ANSNA_Cycles(1);
         puts("TICK");
