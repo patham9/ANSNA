@@ -54,6 +54,7 @@ static Event LocalInference(Concept *c, Event *e, long currentTime)
     Event eMatch = MatchEventToConcept(c, e);
     if(eMatch.truth.confidence > MIN_CONFIDENCE)
     {
+        Concept_SDRInterpolation(c, &e->sdr, eMatch.truth); 
         c->usage = Usage_use(&c->usage, currentTime);          //given its new role it should be doable to add a priorization mechanism to it
         //add event as spike to the concept:
         if(eMatch.type == EVENT_TYPE_BELIEF)
@@ -210,15 +211,23 @@ void Cycle_Perform(long currentTime)
                     for(int j=0; j<c->precondition_beliefs[opi].itemsAmount; j++)
                     {
                         Implication *imp = &c->precondition_beliefs[opi].array[j];
-                        //SDR *preSDR = &imp->sdr;
-                        //int closest_concept_i;
-                        //if(Memory_getClosestConcept(preSDR, SDR_Hash(preSDR), &closest_concept_i)) //todo cache it, maybe in the function
+                        Concept *pre = imp->sourceConcept;
+                        //source concept has changed by conceptual interpolation, 
+                        if(!SDR_Equal(&pre->sdr, &imp->sourceConceptSDR))
                         {
-                            Concept *pre = imp->sourceConcept; //concepts.items[closest_concept_i].address; //TODO check if still the same concept!
-                            if((pre->incoming_goal_spike.type == EVENT_TYPE_DELETED || pre->incoming_goal_spike.processed) && SDR_Equal(&pre->sdr, &imp->sourceConceptSDR))
+                            int closest_concept_i;
+                            imp->sourceConcept = NULL;
+                            if(Memory_getClosestConcept(&imp->sourceConceptSDR, SDR_Hash(&imp->sourceConceptSDR), &closest_concept_i))
                             {
-                                pre->incoming_goal_spike = Inference_GoalDeduction(&c->goal_spike, &c->precondition_beliefs[opi].array[j]);
+                                pre = imp->sourceConcept = concepts.items[closest_concept_i].address;
+                                imp->sourceConceptSDR = ((Concept*) imp->sourceConcept)->sdr;
                             }
+                        }
+                        assert(imp->sourceConcept != NULL, "Linkage has failed");
+                        //propagate spike
+                        if(pre->incoming_goal_spike.type == EVENT_TYPE_DELETED || pre->incoming_goal_spike.processed)
+                        {
+                            pre->incoming_goal_spike = Inference_GoalDeduction(&c->goal_spike, &c->precondition_beliefs[opi].array[j]);
                         }
                     }
                 }
