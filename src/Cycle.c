@@ -85,13 +85,13 @@ static Event ProcessEvent(Event *e, long currentTime)
     int closest_concept_i;
     Concept *c = NULL;
     Event eMatch = {0};
-    if(Memory_getClosestConcept(&e->sdr, e->sdr_hash, &closest_concept_i))
+    if(Memory_getClosestConcept(&e->sdr, e->sdr_hash, &closest_concept_i, true))
     {
         c = concepts.items[closest_concept_i].address;
         //perform concept-related inference
         eMatch = LocalInference(c, e, currentTime);
     }
-    if(!Memory_FindConceptBySDR(&e->sdr, e->sdr_hash, NULL))
+    if(!Memory_FindConceptBySDR(&e->sdr, e->sdr_hash, NULL, true))
     {   
         //if different enough
         bool different_enough = true;
@@ -107,6 +107,7 @@ static Event ProcessEvent(Event *e, long currentTime)
         {
             //add a new concept for e too at the end, as it does not exist already
             Concept *specialConcept = Memory_Conceptualize(&e->sdr);
+            specialConcept->alive = true;
             if(specialConcept != NULL && c != NULL)
             {
                 //copy over all knowledge

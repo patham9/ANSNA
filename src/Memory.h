@@ -39,11 +39,11 @@ EventInspector event_inspector;
 //Init memory
 void Memory_INIT();
 //Find a concept
-bool Memory_FindConceptBySDR(SDR *sdr, SDR_HASH_TYPE sdr_hash, int *returnIndex);
+bool Memory_FindConceptBySDR(SDR *sdr, SDR_HASH_TYPE sdr_hash, int *returnIndex, bool alive);
 //Create a new concept
 Concept* Memory_Conceptualize(SDR *sdr);
 //Return closest concept
-bool Memory_getClosestConcept(SDR *sdr, SDR_HASH_TYPE sdr_hash, int *returnIndex);
+bool Memory_getClosestConcept(SDR *sdr, SDR_HASH_TYPE sdr_hash, int *returnIndex, bool alive);
 //Add an already existing concept to memory that was taken out from the concept priority queue
 bool Memory_addConcept(Concept *concept, long currentTime);
 //Add event to memory

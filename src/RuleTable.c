@@ -8,8 +8,8 @@ void RuleTable_Composition(Event *a, Event *b, int operationID)
     }
     int AConceptIndex;
     int BConceptIndex;
-    if(Memory_getClosestConcept(&a->sdr, a->sdr_hash, &AConceptIndex) &&
-       Memory_getClosestConcept(&b->sdr, b->sdr_hash, &BConceptIndex))
+    if(Memory_getClosestConcept(&a->sdr, a->sdr_hash, &AConceptIndex, true) &&
+       Memory_getClosestConcept(&b->sdr, b->sdr_hash, &BConceptIndex, true))
     {
         Concept *A = concepts.items[AConceptIndex].address;
         Concept *B = concepts.items[BConceptIndex].address;

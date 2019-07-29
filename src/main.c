@@ -158,7 +158,7 @@ void Memory_Test()
     Memory_addEvent(&e);
     assert(belief_events.array[0][0].truth.confidence == 0.9, "event has to be there"); //identify
     int returnIndex;
-    assert(!Memory_getClosestConcept(&e.sdr, e.sdr_hash, &returnIndex), "a concept doesn't exist yet!");
+    assert(!Memory_getClosestConcept(&e.sdr, e.sdr_hash, &returnIndex, false), "a concept doesn't exist yet!");
     Concept *c = Memory_Conceptualize(&e.sdr);
     bool conceptWasCreated = false;
     for(int i=0; i<CONCEPTS_MAX; i++)
@@ -169,9 +169,9 @@ void Memory_Test()
         }
     }
     assert(conceptWasCreated, "Concept should have been created!");
-    assert(Memory_FindConceptBySDR(&e.sdr, e.sdr_hash, &returnIndex), "Concept should be found!");
+    assert(Memory_FindConceptBySDR(&e.sdr, e.sdr_hash, &returnIndex, false), "Concept should be found!");
     assert(c == concepts.items[returnIndex].address, "e should match to c!");
-    assert(Memory_getClosestConcept(&e.sdr, e.sdr_hash, &returnIndex), "Concept should be found!");
+    assert(Memory_getClosestConcept(&e.sdr, e.sdr_hash, &returnIndex, false), "Concept should be found!");
     assert(c == concepts.items[returnIndex].address, "e should match to c!");
 
     Event e2 = Event_InputEvent(Encode_Term("b"), 
@@ -181,13 +181,13 @@ void Memory_Test()
     Memory_addEvent(&e2);
     Concept *c2 = Memory_Conceptualize(&e2.sdr);
     Concept_Print(c2);
-    assert(Memory_FindConceptBySDR(&e2.sdr, e2.sdr_hash, &returnIndex), "Concept should be found!");
+    assert(Memory_FindConceptBySDR(&e2.sdr, e2.sdr_hash, &returnIndex, false), "Concept should be found!");
     assert(c2 == concepts.items[returnIndex].address, "e2 should match to c2!");
-    assert(Memory_getClosestConcept(&e2.sdr, e2.sdr_hash, &returnIndex), "Concept should be found!");
+    assert(Memory_getClosestConcept(&e2.sdr, e2.sdr_hash, &returnIndex, false), "Concept should be found!");
     assert(c2 == concepts.items[returnIndex].address, "e2 should closest-match to c2!");
-    assert(Memory_FindConceptBySDR(&e.sdr, e.sdr_hash, &returnIndex), "Concept should be found!");
+    assert(Memory_FindConceptBySDR(&e.sdr, e.sdr_hash, &returnIndex, false), "Concept should be found!");
     assert(c == concepts.items[returnIndex].address, "e should match to c!");
-    assert(Memory_getClosestConcept(&e.sdr, e.sdr_hash, &returnIndex), "Concept should be found!");
+    assert(Memory_getClosestConcept(&e.sdr, e.sdr_hash, &returnIndex, false), "Concept should be found!");
     assert(c == concepts.items[returnIndex].address, "e should closest-match to c!");
     puts("<<Memory test successful");
 }

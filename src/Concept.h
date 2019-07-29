@@ -31,6 +31,7 @@ typedef struct {
     Implication anticipation_negative_confirmation[ANTICIPATIONS_MAX];
     long anticipation_deadline[ANTICIPATIONS_MAX];
     int anticipation_operation_id[ANTICIPATIONS_MAX];
+    bool alive;
     //For debugging:
     char debug[50];
 } Concept;

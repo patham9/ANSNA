@@ -31,14 +31,14 @@ void Memory_INIT()
     operations_index = 0;
 }
 
-bool Memory_FindConceptBySDR(SDR *sdr, SDR_HASH_TYPE sdr_hash, int *returnIndex)
+bool Memory_FindConceptBySDR(SDR *sdr, SDR_HASH_TYPE sdr_hash, int *returnIndex, bool alive)
 {
     for(int i=0; i<concepts.itemsAmount; i++)
     {
         Concept *existing = concepts.items[i].address;
         if(!USE_HASHING || existing->sdr_hash == sdr_hash)
         {
-            if(SDR_Equal(&existing->sdr, sdr))
+            if(SDR_Equal(&existing->sdr, sdr) && (!alive || existing->alive))
             {
                 if(returnIndex != NULL)
                 {
@@ -65,14 +65,14 @@ Concept* Memory_Conceptualize(SDR *sdr)
     return addedConcept;
 }
 
-bool Memory_getClosestConcept(SDR *sdr, SDR_HASH_TYPE sdr_hash, int *returnIndex)
+bool Memory_getClosestConcept(SDR *sdr, SDR_HASH_TYPE sdr_hash, int *returnIndex, bool alive)
 {
     if(concepts.itemsAmount == 0)
     {
         return false;   
     }
     int foundSameConcept_i;
-    if(Memory_FindConceptBySDR(sdr, sdr_hash, &foundSameConcept_i))
+    if(Memory_FindConceptBySDR(sdr, sdr_hash, &foundSameConcept_i, alive))
     {
         *returnIndex = foundSameConcept_i;
         return true;
@@ -81,11 +81,15 @@ bool Memory_getClosestConcept(SDR *sdr, SDR_HASH_TYPE sdr_hash, int *returnIndex
     double bestValSoFar = -1;
     for(int i=0; i<concepts.itemsAmount; i++)
     {
-        double curVal = Truth_Expectation(SDR_Inheritance(sdr, &(((Concept*)concepts.items[i].address)->sdr)));
-        if(curVal > bestValSoFar)
+        Concept *c = (Concept*) concepts.items[i].address;
+        if(!alive || c->alive)
         {
-            bestValSoFar = curVal;
-            best_i = i;
+            double curVal = Truth_Expectation(SDR_Inheritance(sdr, &c->sdr));
+            if(curVal > bestValSoFar)
+            {
+                bestValSoFar = curVal;
+                best_i = i;
+            }
         }
     }
     if(best_i == -1) //TODO how?

@@ -35,7 +35,7 @@ Decision Decision_RealizeGoal(Event *goal, long currentTime)
 {
     Decision decision = (Decision) {0};
     int closest_postcon_concept_i;
-    if(Memory_getClosestConcept(&goal->sdr, goal->sdr_hash, &closest_postcon_concept_i))
+    if(Memory_getClosestConcept(&goal->sdr, goal->sdr_hash, &closest_postcon_concept_i, true))
     {
         Concept *postcon_c = concepts.items[closest_postcon_concept_i].address;
         double bestTruthExpectation = 0;
@@ -57,7 +57,7 @@ Decision Decision_RealizeGoal(Event *goal, long currentTime)
                 )
                 //now look at how much the precondition is fulfilled
                 int closest_precon_concept_i;
-                if(Memory_getClosestConcept(&imp.sdr, imp.sdr_hash, &closest_precon_concept_i))
+                if(Memory_getClosestConcept(&imp.sdr, imp.sdr_hash, &closest_precon_concept_i, true))
                 {
                     Concept *current_precon_c = concepts.items[closest_precon_concept_i].address;
                     Event *precondition = &current_precon_c->belief_spike; //a. :|:
