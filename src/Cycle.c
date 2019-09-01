@@ -1,7 +1,7 @@
 #include "Cycle.h"
 
 //doing inference within the matched concept, returning the matched event
-static Event Cycle_ActivateConcept(Concept *c, Event *e, long currentTime)
+static Event Cycle_ActivateConcept(Concept *c, Event *e, long currentTime, bool makeDecisions)
 {
     Concept_ConfirmAnticipation(c, e);
     //Matched event, see https://github.com/patham9/ANSNA/wiki/SDR:-SDRInheritance-for-matching,-and-its-truth-value
@@ -12,9 +12,10 @@ static Event Cycle_ActivateConcept(Concept *c, Event *e, long currentTime)
         //add event as spike to the concept:
         if(eMatch.type == EVENT_TYPE_BELIEF)
         {
-            c->belief_spike = eMatch;
+            c->belief_spike = Inference_IncreasedActionPotential(&c->belief_spike, &eMatch, currentTime);
         }
         else
+        if(makeDecisions) //only process goal for most specific, generalization is for beliefs
         {
             //pass spike if the concept doesn't have a satisfying motor command
             if(!Decision_Making(&eMatch, currentTime))
@@ -40,23 +41,36 @@ static Event Cycle_ProcessEvent(Event *e, long currentTime)
     int closest_concept_i;
     Concept *c = NULL;
     Event eMatch = {0};
+    //match to closest concept
     if(Memory_getClosestConcept(&e->sdr, e->sdr_hash, &closest_concept_i))
     {
         c = concepts.items[closest_concept_i].address;
-        eMatch = Cycle_ActivateConcept(c, e, currentTime);
+        eMatch = Cycle_ActivateConcept(c, e, currentTime, true);
     }
-    if(Memory_EventIsNovel(e, c))
+    //also activate the others if sufficient match:
+    for(int i=0; i<concepts.itemsAmount; i++)
     {
-        //add a new concept for e too at the end, as it does not exist already
-        Concept *specialConcept = Memory_Conceptualize(&e->sdr);
-        if(c != NULL && specialConcept != NULL)
+        Concept *c_other = concepts.items[i].address;
+        if(c_other != c)
         {
-            //copy over all knowledge
-            for(int i=0; i<OPERATIONS_MAX; i++)
-            {
-                Table_COPY(&c->precondition_beliefs[i],  &specialConcept->precondition_beliefs[i]);
-            }
+            Cycle_ActivateConcept(c_other, e, currentTime, false);
         }
+    }
+    //add a new concept for e too at the end, as it does not exist already
+    Concept *specialConcept = Memory_Conceptualize(&e->sdr);
+    if(c != NULL && specialConcept != NULL)
+    {
+        //copy over all knowledge
+        for(int i=0; i<OPERATIONS_MAX; i++)
+        {
+            Table_COPY(&c->precondition_beliefs[i], &specialConcept->precondition_beliefs[i]);
+        }
+        //also conceptualize common (generalization) and novel part (distinction)
+        SDR commonality = SDR_Intersection(&specialConcept->sdr, &c->sdr);
+        Memory_Conceptualize(&commonality); //what's common
+        //difference:
+        SDR difference = SDR_Minus(&specialConcept->sdr, &c->sdr);
+        Memory_Conceptualize(&difference);  //what's novel
     }
     return eMatch;
 }
@@ -120,34 +134,44 @@ static void Cycle_ReinforceLink(Event *a, Event *b, int operationID)
     {
         return;
     }
-    int AConceptIndex;
-    int BConceptIndex;
-    if(Memory_getClosestConcept(&a->sdr, a->sdr_hash, &AConceptIndex) &&
-       Memory_getClosestConcept(&b->sdr, b->sdr_hash, &BConceptIndex))
+    //temporal induction
+    if(!Stamp_checkOverlap(&a->stamp, &b->stamp))
     {
-        Concept *A = concepts.items[AConceptIndex].address;
-        Concept *B = concepts.items[BConceptIndex].address;
-        if(A != B)
+        for(int AConceptIndex=0; AConceptIndex<concepts.itemsAmount; AConceptIndex++)
         {
-            //temporal induction
-            if(!Stamp_checkOverlap(&a->stamp, &b->stamp))
+            for(int BConceptIndex=0; BConceptIndex<concepts.itemsAmount; BConceptIndex++)
             {
-                
-                Implication precondition_implication = Inference_BeliefInduction(a, b);
-                precondition_implication.sourceConcept = A;
-                precondition_implication.sourceConceptSDR = A->sdr;
-                if(precondition_implication.truth.confidence >= MIN_CONFIDENCE)
+                //int AConceptIndex;
+                //int BConceptIndex;
+                //if(Memory_getClosestConcept(&a->sdr, a->sdr_hash, &AConceptIndex) &&
+                //   Memory_getClosestConcept(&b->sdr, b->sdr_hash, &BConceptIndex))
                 {
-                    char debug[100];
-                    sprintf(debug, "<(&/,%s,^op%d()) =/> %s>.",a->debug, operationID, b->debug);
-                    IN_DEBUG ( if(operationID != 0) { puts(debug); Truth_Print(&precondition_implication.truth); puts("\n"); getchar(); } )
-                    IN_OUTPUT( fputs("Formed implication: ", stdout); Implication_Print(&precondition_implication); )
-                    Implication *revised_precon = Table_AddAndRevise(&B->precondition_beliefs[operationID], &precondition_implication, debug);
-                    if(revised_precon != NULL)
+                    Concept *A = concepts.items[AConceptIndex].address;
+                    Concept *B = concepts.items[BConceptIndex].address;
+                    if(A != B)
                     {
-                        revised_precon->sourceConcept = A;
-                        revised_precon->sourceConceptSDR = A->sdr;
-                        IN_OUTPUT( if(revised_precon->sdr_hash != 0) { fputs("REVISED pre-condition implication: ", stdout); Implication_Print(revised_precon); } )
+                        Event a_ = Memory_MatchEventToConcept(A, a);
+                        Event b_ = Memory_MatchEventToConcept(B, b);
+                        if(a_.truth.confidence > MIN_CONFIDENCE && b_.truth.confidence > MIN_CONFIDENCE)
+                        {
+                            Implication precondition_implication = Inference_BeliefInduction(&a_, &b_);
+                            precondition_implication.sourceConcept = A;
+                            precondition_implication.sourceConceptSDR = A->sdr;
+                            if(precondition_implication.truth.confidence >= MIN_CONFIDENCE)
+                            {
+                                char debug[100];
+                                sprintf(debug, "<(&/,%s,^op%d()) =/> %s>.",a->debug, operationID, b->debug);
+                                IN_DEBUG ( if(operationID != 0) { puts(debug); Truth_Print(&precondition_implication.truth); puts("\n"); getchar(); } )
+                                IN_OUTPUT( fputs("Formed implication: ", stdout); Implication_Print(&precondition_implication); )
+                                Implication *revised_precon = Table_AddAndRevise(&B->precondition_beliefs[operationID], &precondition_implication, debug);
+                                if(revised_precon != NULL)
+                                {
+                                    revised_precon->sourceConcept = A;
+                                    revised_precon->sourceConceptSDR = A->sdr;
+                                    IN_OUTPUT( if(revised_precon->sdr_hash != 0) { fputs("REVISED pre-condition implication: ", stdout); Implication_Print(revised_precon); } )
+                                }
+                            }
+                        }
                     }
                 }
             }

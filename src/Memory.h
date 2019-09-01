@@ -54,8 +54,6 @@ bool Memory_addConcept(Concept *concept, long currentTime);
 bool Memory_addEvent(Event *event);
 //Add operation to memory
 void Memory_addOperation(Operation op);
-//Whether an event is novel in respect to a concept
-bool Memory_EventIsNovel(Event *event, Concept *c_matched_to);
 //Propagate spikes
 void Memory_SpikePropagation(long currentTime);
 //Match event to concept

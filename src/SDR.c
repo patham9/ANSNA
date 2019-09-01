@@ -55,6 +55,24 @@ static SDR SDR_Xor(SDR *a, SDR *b)
     return c;
 }
 
+SDR SDR_Minus(SDR *a, SDR *b)
+{
+    SDR c;
+    ITERATE_SDR_BLOCKS(i,
+        c.blocks[i] = a->blocks[i] & (~b->blocks[i]);
+    )
+    return c;
+}
+
+SDR SDR_Intersection(SDR *a, SDR *b)
+{
+    SDR c;
+    ITERATE_SDR_BLOCKS(i,
+        c.blocks[i] = a->blocks[i] & b->blocks[i];
+    )
+    return c;
+}
+
 SDR SDR_PermuteByRotation(SDR *sdr, bool forward)
 {
     SDR c = *sdr;
