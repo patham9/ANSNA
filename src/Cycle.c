@@ -58,6 +58,21 @@ static Event Cycle_ProcessEvent(Event *e, long currentTime)
             }
         }
     }
+    //generalization by adding a concept for the commonaltiy between event and matched to concept
+    //and then adding events of the general case extra to be processed
+    //since these ones will be conceptualized, this won't repeat for the derived common part
+    if(c != NULL && !SDR_Equal(&e->sdr, &c->sdr))
+    {
+        SDR general_sdr = SDR_Intersection(&e->sdr, &c->sdr);
+        Memory_Conceptualize(&general_sdr);
+        int concept_i;
+        if(Memory_FindConceptBySDR(&general_sdr, SDR_Hash(&general_sdr), &concept_i))
+        {
+            Event e_common = *e;
+            e_common.sdr = general_sdr;
+            Memory_addEvent(&e_common);
+        }
+    }
     return eMatch;
 }
 

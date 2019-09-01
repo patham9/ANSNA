@@ -54,6 +54,10 @@ bool Memory_FindConceptBySDR(SDR *sdr, SDR_HASH_TYPE sdr_hash, int *returnIndex)
 Concept* Memory_Conceptualize(SDR *sdr)
 {
     Concept *addedConcept = NULL;
+    if(SDR_CountTrue(sdr) == 0 || Memory_FindConceptBySDR(sdr, SDR_Hash(sdr), NULL))
+    {
+        return NULL;
+    }
     //try to add it, and if successful add to voting structure
     PriorityQueue_Push_Feedback feedback = PriorityQueue_Push(&concepts, 0.0);
     if(feedback.added)

@@ -94,7 +94,7 @@ Decision Decision_RealizeGoal(Event *goal, long currentTime)
                 }
             }
         }
-        printf("decision expectation %f impTruth=(%f, %f): %s\n", bestTruthExpectation, bestImp.truth.frequency, bestImp.truth.confidence, bestImp.debug);
+        IN_DEBUG ( printf("decision expectation %f impTruth=(%f, %f): %s\n", bestTruthExpectation, bestImp.truth.frequency, bestImp.truth.confidence, bestImp.debug); )
         if(bestTruthExpectation < DECISION_THRESHOLD)
         {
             return decision;

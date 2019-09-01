@@ -68,6 +68,10 @@ void SDR_WriteBitInBlock(SDR *sdr, int block_i, int block_bit_j, int value);
 void SDR_WriteBit(SDR *sdr, int bit_i, int value);
 // count amount of true bits
 int SDR_CountTrue(SDR *sdr);
+//One SDR minus the other
+SDR SDR_Minus(SDR *a, SDR *b);
+//Intersection of both SDR's
+SDR SDR_Intersection(SDR *a, SDR *b);
 // print indices of true bits
 void SDR_Print(SDR *sdr);
 //Generate a random permutation and its inverse
