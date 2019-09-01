@@ -32,6 +32,10 @@ typedef struct {
     Implication anticipation_negative_confirmation[ANTICIPATIONS_MAX];
     long anticipation_deadline[ANTICIPATIONS_MAX];
     int anticipation_operation_id[ANTICIPATIONS_MAX];
+    //link to parent
+    SDR parent_sdr;
+    SDR_HASH_TYPE parent_sdrhash;
+    void *parent_c;
     //For debugging:
     char debug[50];
 } Concept;

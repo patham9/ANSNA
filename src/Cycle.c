@@ -45,32 +45,58 @@ static Event Cycle_ProcessEvent(Event *e, long currentTime)
         c = concepts.items[closest_concept_i].address;
         eMatch = Cycle_ActivateConcept(c, e, currentTime);
     }
+    Concept *specialConceptCreated = NULL;
     if(Memory_EventIsNovel(e, c))
     {
         //add a new concept for e too at the end, as it does not exist already
-        Concept *specialConcept = Memory_Conceptualize(&e->sdr);
-        if(c != NULL && specialConcept != NULL)
+        specialConceptCreated = Memory_Conceptualize(&e->sdr);
+        if(c != NULL && specialConceptCreated != NULL)
         {
             //copy over all knowledge
             for(int i=0; i<OPERATIONS_MAX; i++)
             {
-                Table_COPY(&c->precondition_beliefs[i],  &specialConcept->precondition_beliefs[i]);
+                Table_COPY(&c->precondition_beliefs[i], &specialConceptCreated->precondition_beliefs[i]);
             }
         }
-    }
-    //generalization by adding a concept for the commonaltiy between event and matched to concept
-    //and then adding events of the general case extra to be processed
-    //since these ones will be conceptualized, this won't repeat for the derived common part
+    } 
     if(c != NULL && !SDR_Equal(&e->sdr, &c->sdr))
     {
+        //generalization by creating intersection sdr
         SDR general_sdr = SDR_Intersection(&e->sdr, &c->sdr);
-        Memory_Conceptualize(&general_sdr);
+        //then creating event with it to see whether it is novel
+        //if so link to new, else to existing
+        Event e_common = *e;
+        e_common.sdr = general_sdr;
         int concept_i;
-        if(Memory_FindConceptBySDR(&general_sdr, SDR_Hash(&general_sdr), &concept_i))
+        Concept *general_c = NULL;
+        if(specialConceptCreated != NULL &&
+           Memory_getClosestConcept(&general_sdr, SDR_Hash(&general_sdr), &concept_i))
         {
-            Event e_common = *e;
-            e_common.sdr = general_sdr;
-            Memory_addEvent(&e_common);
+            Concept *general_c_existing = concepts.items[concept_i].address;
+            if(specialConceptCreated != general_c_existing)
+            {
+                general_c = general_c_existing;
+                if(Memory_EventIsNovel(&e_common, general_c))
+                {
+                    Concept *general_c_created = Memory_Conceptualize(&general_sdr);
+                    if(general_c_created != NULL)
+                    {
+                        general_c = general_c_created;
+                    }
+                }
+                if(specialConceptCreated != general_c)
+                {
+                    specialConceptCreated->parent_c = general_c;
+                }
+            }
+        }
+        //now pass "spike" up the hierachy
+        while(general_c != NULL && e->type == EVENT_TYPE_BELIEF)
+        {
+            e_common.sdr = general_c->sdr;
+            Memory_addEvent(&e_common); //same evidental base, but SDR changes
+            Cycle_Perform(currentTime);
+            general_c = general_c->parent_c;
         }
     }
     return eMatch;

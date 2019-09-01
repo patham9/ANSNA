@@ -17,7 +17,7 @@
 //----------//
 #define CONCEPTS_MAX 1000
 #define USE_HASHING true
-#define CONCEPT_FORMATION_NOVELTY 0.2
+#define CONCEPT_FORMATION_NOVELTY 0.01
 #define PROPAGATE_GOAL_SPIKES true
 //only propagate promising spikes:
 #define PROPAGATION_TRUTH_EXPECTATION_THRESHOLD 0.5
