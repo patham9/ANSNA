@@ -1,0 +1,367 @@
+﻿/////////TEXTDEFS
+#define w 5
+#define h 5
+#define AlphabetSize 100
+float *chars[AlphabetSize*w*h]; //+w*h? hm *
+#define CharDef(x,y,z) float x[y*z]=
+int numchars=0;
+#define AddDef(x,y) chars[x]=y; numchars++
+
+
+CharDef(Z,w,h){ 1,1,1,1,1,
+           		0,0,0,1,0,
+           		0,0,1,0,0,
+           		0,1,0,0,0,
+           		1,1,1,1,1 };
+
+CharDef(Y,w,h){ 1,0,0,0,1,
+           		0,1,0,1,0,
+           		0,0,1,0,0,
+           		0,0,1,0,0,
+           		0,0,1,0,0 };
+ 
+CharDef(X,w,h){ 1,0,0,0,1,    
+           		0,1,0,1,0,
+           		0,0,1,0,0,
+           		0,1,0,1,0,
+           		1,0,0,0,1 };
+
+CharDef(W,w,h){ 1,0,0,0,1,
+           		1,0,0,0,1,
+           		1,0,1,0,1,
+           		1,0,1,0,1,
+           		0,1,0,1,0 };
+ 
+CharDef(V,w,h){ 1,0,0,0,1,
+           		1,0,0,0,1,
+           		1,0,0,0,1,
+           		0,1,0,1,0,
+           		0,0,1,0,0 };
+
+CharDef(U,w,h){ 1,0,0,0,1,
+           		1,0,0,0,1,
+           		1,0,0,0,1,
+           		1,0,0,0,1,
+           		0,1,1,1,0 };
+
+CharDef(T,w,h){ 1,1,1,1,1,
+           		0,0,1,0,0,
+           		0,0,1,0,0,
+           		0,0,1,0,0,
+           		0,0,1,0,0 };
+
+CharDef(S,w,h){ 0,1,1,1,1,
+          		1,0,0,0,0,  
+           		0,1,1,1,0,
+           		0,0,0,0,1,
+           		1,1,1,1,0 };          
+
+
+CharDef(R,w,h){ 1,1,1,1,0,
+           		1,0,0,0,1,
+           		1,1,1,1,0,
+           		1,0,0,0,1,   
+           		1,0,0,0,1 };
+
+CharDef(Q,w,h){ 0,1,1,1,0,
+           		1,0,0,0,1,
+           		1,0,1,0,1,
+           		1,0,0,1,0, 
+           		0,1,1,0,1 };
+
+CharDef(P,w,h){ 1,1,1,1,0,
+           		1,0,0,0,1,
+          		1,1,1,1,0,
+           		1,0,0,0,0,
+           		1,0,0,0,0 };
+
+CharDef(O,w,h){ 0,1,1,1,0,
+           		1,0,0,0,1,
+           		1,0,0,0,1,
+           		1,0,0,0,1,  
+           		0,1,1,1,0 };
+
+CharDef(N,w,h){ 1,0,0,0,1,
+           		1,1,0,0,1,
+           		1,0,1,0,1,
+           		1,0,0,1,1,
+				1,0,0,0,1 };
+
+CharDef(M,w,h){ 1,0,0,0,1,
+           		1,1,0,1,1,
+           		1,0,1,0,1,
+           		1,0,1,0,1,
+           		1,0,1,0,1 };
+
+CharDef(L,w,h){ 1,0,0,0,0,
+           		1,0,0,0,0,
+           		1,0,0,0,0,
+				1,0,0,0,0,
+				1,1,1,1,1 };
+
+CharDef(K,w,h){ 1,0,0,0,1,
+           		1,0,0,1,0,
+           		1,1,1,0,0,
+           		1,0,0,1,0,
+           		1,0,0,0,1 };
+
+CharDef(J,w,h){ 1,1,1,1,1,
+           		0,0,0,0,1,
+           		0,0,0,0,1,
+           		1,0,0,0,1,
+           		0,1,1,1,0 };
+
+CharDef(I,w,h){ 0,0,1,0,0,
+           		0,0,1,0,0,
+           		0,0,1,0,0,
+           		0,0,1,0,0,
+           		0,0,1,0,0 };
+
+CharDef(H,w,h){ 1,0,0,0,1,
+           		1,0,0,0,1,
+           		1,1,1,1,1,
+           		1,0,0,0,1,
+           		1,0,0,0,1 };
+
+CharDef(G,w,h){ 0,1,1,1,0,
+           		1,0,0,0,0,
+          		1,0,0,1,1,
+           		1,0,0,0,1,
+           		0,1,1,1,0 };
+
+CharDef(F,w,h){ 1,1,1,1,1,
+				1,0,0,0,0,
+           		1,1,1,0,0,
+	           	1,0,0,0,0,
+		       	1,0,0,0,0 };
+
+CharDef(E,w,h){ 1,1,1,1,1,
+           		1,0,0,0,0,
+           		1,1,1,1,0,
+           		1,0,0,0,0,
+           		1,1,1,1,1 };
+
+CharDef(D,w,h){ 1,1,1,1,0,
+           		1,0,0,0,1,
+           		1,0,0,0,1,
+           		1,0,0,0,1,
+           		1,1,1,1,0 };
+
+CharDef(C,w,h){ 0,1,1,1,0,
+           		1,0,0,0,1,
+           		1,0,0,0,0,
+           		1,0,0,0,1,
+           		0,1,1,1,0 };
+
+CharDef(B,w,h){ 1,1,1,1,0,
+           		1,0,0,0,1,
+           		1,1,1,1,0,
+           		1,0,0,0,1,
+           		1,1,1,1,0 };
+
+CharDef(A,w,h){ 0,1,1,1,0,
+           		1,0,0,0,1,
+           		1,1,1,1,1,
+           		1,0,0,0,1,
+           		1,0,0,0,1 };
+
+
+
+CharDef(n9,w,h){ 0,1,1,1,0,
+            	 1,0,0,0,1,
+            	 0,1,1,1,1,
+            	 0,0,0,0,1,
+            	 0,1,1,1,0 };
+
+CharDef(n8,w,h){ 0,1,1,1,0,
+            	 1,0,0,0,1,
+            	 0,1,1,1,0,
+            	 1,0,0,0,1,
+            	 0,1,1,1,0 };
+
+CharDef(n7,w,h){ 1,1,1,1,1,
+           		 0,0,0,1,0,
+            	 0,0,1,0,0,
+            	 0,1,0,0,0,
+            	 0,1,0,0,0 };
+
+CharDef(n6,w,h){ 0,1,1,1,0,
+            	 1,0,0,0,0,
+            	 1,1,1,1,0,
+            	 1,0,0,0,1,
+            	 0,1,1,1,0 };
+
+CharDef(n5,w,h){ 1,1,1,1,1,
+            	 1,0,0,0,0,
+            	 1,1,1,1,0,
+            	 0,0,0,0,1,
+            	 1,1,1,1,0 };
+
+CharDef(n4,w,h){ 0,0,0,1,0,
+            	 0,0,1,1,0,
+            	 0,1,0,1,0,
+            	 1,1,1,1,1,
+            	 0,0,0,1,0 };
+
+CharDef(n3,w,h){ 1,1,1,1,0,
+            	 0,0,0,0,1,
+            	 0,1,1,1,0,
+            	 0,0,0,0,1,
+            	 1,1,1,1,0 };
+
+CharDef(n2,w,h){ 0,1,1,1,0,
+            	 1,0,0,0,1,
+            	 0,0,1,1,0,
+            	 0,1,0,0,0,
+            	 1,1,1,1,1 };
+
+CharDef(n1,w,h){ 0,0,0,1,0,
+            	 0,0,1,1,0,
+            	 0,1,0,1,0,
+           		 0,0,0,1,0,
+            	 0,0,0,1,0 };
+
+
+CharDef(n0,w,h){ 0,1,1,1,0,
+            	 1,0,0,1,1,
+            	 1,0,1,0,1,
+            	 1,1,0,0,1,
+            	 0,1,1,1,0 };
+
+CharDef(np,w,h){ 0,0,0,0,0,
+            	 0,0,0,0,0,
+            	 0,0,0,0,0,
+            	 0,1,1,0,0,
+            	 0,1,1,0,0 };
+
+CharDef(nnull,w,h){ 0,0,0,0,0,
+            	    0,0,0,0,0,
+            	    0,0,0,0,0,
+            	    0,0,0,0,0,
+            	    0,0,0,0,0 };
+
+CharDef(nfull,w,h){ 1,1,1,1,1,
+            	    1,1,1,1,1,
+            	    1,1,1,1,1,
+            	    1,1,1,1,1,
+            	    1,1,1,1,1 };
+
+
+
+void hrend_AddTextDefs()
+{
+	AddDef('A',A);
+	AddDef('B',B);
+	AddDef('C',C);
+	AddDef('D',D);
+	AddDef('E',E);
+	AddDef('F',F);
+	AddDef('G',G);
+	AddDef('H',H);
+	AddDef('I',I);
+	AddDef('J',J);
+	AddDef('K',K);
+	AddDef('L',L);
+	AddDef('M',M);
+	AddDef('N',N);
+	AddDef('O',O);
+	AddDef('P',P);
+	AddDef('Q',Q);
+	AddDef('R',R);
+	AddDef('S',S);
+	AddDef('T',T);
+	AddDef('U',U);
+	AddDef('V',V);
+	AddDef('W',W);
+	AddDef('X',X);
+	AddDef('Y',Y);
+	AddDef('Z',Z);
+	AddDef('0',n0);
+	AddDef('1',n1);
+	AddDef('2',n2);
+	AddDef('3',n3);
+	AddDef('4',n4);
+	AddDef('5',n5);
+	AddDef('6',n6);
+	AddDef('7',n7);
+	AddDef('8',n8);
+	AddDef('9',n9);
+	AddDef('.',np);
+	AddDef('\0',nnull);
+	AddDef('1',nfull);
+	AddDef(' ',nnull);
+}
+
+unsigned char hrend_DrawPixelString(char *ch, float px, float py, float size, float distance)
+{ 
+	{
+		float *select;
+		float target[w*h];
+		int i=0,j=0;
+		unsigned int ji=0;
+		int count=0;
+		
+		hrend_DisableTex();
+		for(ji=0;ji<strlen(ch);ji++)
+		{
+			select=chars[ch[ji]];
+			
+			for(i=0;i<h;i++)
+			{
+				for(j=0;j<w;j++)
+				{
+					target[w*(i)+j]=select[w*(w-(i+1))+j];
+				}
+
+			}
+			if(distance==0.0f) // NULL
+			{
+				distance=0.06f;
+			}
+			glPixelZoom(size*0.001f*hrend.width,size*0.001f*hrend.height);
+			glRasterPos2f(px+ji*distance,py); //dist**0.001f*hrend.width
+			glDrawPixels(5,5,GL_ALPHA,GL_FLOAT,target);
+		}
+		hrend_EnableTex();
+	}
+
+return 0;
+}
+unsigned char hrend_DrawSegmentString(char *ch, float px, float py, float size, float distance)
+{ 
+	float *select;
+	int i=0,j=0;
+	unsigned int ji=0;
+	int count=0;
+		
+	glPushMatrix();
+	glTranslatef(px,py,0);
+	glScalef(size,size,0);
+		
+	for(ji=0;ji<strlen(ch);ji++)
+	{
+		select=chars[ch[ji]];
+			
+		for(i=0;i<h;i++)
+		{
+			for(j=0;j<w;j++)
+			{
+				if(select[w*(w-(i+1))+j])
+				{
+					glPushMatrix();
+					glTranslatef(((float)j/100),((float)i)/100,0);
+					hrend_DrawIcon(0,0,0,1,1,0);
+					glPopMatrix();
+				}
+			}
+		}
+		if(distance==0.0f) // NULL
+		{
+			distance=0.06f;
+		}
+		glTranslatef(distance,0,0);
+	}
+	glPopMatrix();
+	return 0;
+}
+/////////////////////
