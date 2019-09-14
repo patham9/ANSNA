@@ -66,8 +66,8 @@ static bool Cycle_ProcessEvent(Event *e, long currentTime)
         }*/
     }
     //add a new concept for e too at the end (in all layers)
-    //Memory_ConceptualizeInLayer(0, &e->sdr, SDR_Hash(&e->sdr));
-    Memory_Conceptualize(&e->sdr);
+    Memory_ConceptualizeInLayer(0, &e->sdr, SDR_Hash(&e->sdr));
+    //Memory_Conceptualize(&e->sdr);
     return decisionMade;
 }
 
