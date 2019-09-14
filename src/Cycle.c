@@ -7,7 +7,10 @@ static bool Cycle_ActivateConcept(int layer, Concept *c, Event *e, long currentT
     Event eMatch = Memory_MatchEventToConcept(c, e);
     if(eMatch.truth.confidence > MIN_CONFIDENCE)
     {
-        Concept_SDRInterpolation(layer, c, &e->sdr);
+        if(concepts[layer].itemsAmount == concepts[layer].maxElements)
+        {
+            Concept_SDRInterpolation(layer, c, &e->sdr);
+        }
         c->usage = Usage_use(&c->usage, currentTime);          //given its new role it should be doable to add a priorization mechanism to it
         //add event as spike to the concept:
         if(eMatch.type == EVENT_TYPE_BELIEF)
@@ -39,20 +42,31 @@ static bool Cycle_ProcessEvent(Event *e, long currentTime)
     Event_SetSDR(e, e->sdr); // TODO make sure that hash needs to be calculated once instead already
     IN_DEBUG( puts("Event was selected:"); Event_Print(e); )
     bool decisionMade = false;
+    Event cur = *e;
     for(int l=0; l<CONCEPT_LAYERS; l++)
     {
         //determine the concept it is related to
         int closest_concept_i;
         Concept *c = NULL;
-        if(Memory_getClosestConcept(l, &e->sdr, e->sdr_hash, &closest_concept_i))
+        if(Memory_getClosestConcept(l, &cur.sdr, SDR_Hash(&cur.sdr), &closest_concept_i))
+        {
+            c = concepts[l].items[closest_concept_i].address;
+            decisionMade |= Cycle_ActivateConcept(l, c, &cur, currentTime, decisionMade);
+            SDR common = SDR_Intersection(&c->sdr, &cur.sdr);
+            if(l < CONCEPT_LAYERS-1)
+            {
+                Memory_ConceptualizeInLayer(l+1, &common, SDR_Hash(&common));
+                //Memory_ConceptualizeInLayer(l+1, &e->sdr, SDR_Hash(&e->sdr));
+            }
+        }
+        /*if(Memory_getClosestConcept(l, &e->sdr, e->sdr_hash, &closest_concept_i))
         {
             c = concepts[l].items[closest_concept_i].address;
             decisionMade |= Cycle_ActivateConcept(l, c, e, currentTime, decisionMade);
-            SDR common = SDR_Intersection(&c->sdr, &e->sdr);
-            Memory_ConceptualizeInLayer(l, &common, SDR_Hash(&common));
-        }
+        }*/
     }
     //add a new concept for e too at the end (in all layers)
+    //Memory_ConceptualizeInLayer(0, &e->sdr, SDR_Hash(&e->sdr));
     Memory_Conceptualize(&e->sdr);
     return decisionMade;
 }

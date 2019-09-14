@@ -33,18 +33,18 @@ void Concept_SDRInterpolation(int layer, Concept *concept, SDR *eventSDR)
     }
     ITERATE_SDR_BITS(i,j,
         double oldValue = concept->sdr_bit_counter[k];
-        double count = SDR_ReadBitInBlock(eventSDR,i,j) ? 1.0 : -1.0;
-        concept->sdr_bit_counter[k] = MIN(CONCEPT_INTERPOLATION_COUNTER_MAX, MAX(CONCEPT_INTERPOLATION_COUNTER_MIN, concept->sdr_bit_counter[k]+mul * count));
+        double count = SDR_ReadBitInBlock(eventSDR,i,j) ? CONCEPT_INTERPOLATION_POS_COUNT : CONCEPT_INTERPOLATION_NEG_COUNT;
+        concept->sdr_bit_counter[k] += mul * count;
         double newValue = concept->sdr_bit_counter[k];
         if(oldValue<0.5 && newValue >= 0.5)
         {
-            SDR_WriteBit(&concept->sdr,k,1);
+            SDR_WriteBitInBlock(&concept->sdr,i,j, 1);
             rehash = true;
         }
         else
         if(oldValue>=0.5 && newValue < 0.5)
         {
-            SDR_WriteBit(&concept->sdr,k,0);
+            SDR_WriteBitInBlock(&concept->sdr,i,j,0);
             rehash = true;
         }
         k++;
