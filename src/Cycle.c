@@ -7,7 +7,7 @@ static bool Cycle_ActivateConcept(int layer, Concept *c, Event *e, long currentT
     Event eMatch = Memory_MatchEventToConcept(c, e);
     if(eMatch.truth.confidence > MIN_CONFIDENCE)
     {
-        Concept_SDRInterpolation(c, &e->sdr, eMatch.truth);
+        Concept_SDRInterpolation(layer, c, &e->sdr);
         c->usage = Usage_use(&c->usage, currentTime);          //given its new role it should be doable to add a priorization mechanism to it
         //add event as spike to the concept:
         if(eMatch.type == EVENT_TYPE_BELIEF)
@@ -48,6 +48,8 @@ static bool Cycle_ProcessEvent(Event *e, long currentTime)
         {
             c = concepts[l].items[closest_concept_i].address;
             decisionMade |= Cycle_ActivateConcept(l, c, e, currentTime, decisionMade);
+            SDR common = SDR_Intersection(&c->sdr, &e->sdr);
+            Memory_ConceptualizeInLayer(l, &common, SDR_Hash(&common));
         }
     }
     //add a new concept for e too at the end (in all layers)

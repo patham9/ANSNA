@@ -20,7 +20,7 @@
 
 //Parameters//
 //----------//
-#define SDR_SIZE 2048
+#define SDR_SIZE 1024
 #ifndef SDR_BLOCK_TYPE
 #define SDR_BLOCK_TYPE uintmax_t
 #endif
@@ -94,5 +94,7 @@ Truth SDR_Similarity(SDR *a, SDR *b);
 SDR_HASH_TYPE SDR_Hash(SDR *sdr);
 //SDR init
 void SDR_INIT();
+//SDR intersection
+SDR SDR_Intersection(SDR *a, SDR *b);
 
 #endif

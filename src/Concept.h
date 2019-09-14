@@ -16,8 +16,12 @@
 //----------//
 #define OPERATIONS_MAX 10
 #define MIN_CONFIDENCE 0.01
-#define CONCEPT_INTERPOLATION_STRENGTH 0.5
+#define CONCEPT_INTERPOLATION_STRENGTH 1.0
 #define CONCEPT_INTERPOLATION_INIT_STRENGTH 1.0
+#define CONCEPT_INTERPOLATION_LAYER_DECAY 0.8
+#define CONCEPT_INTERPOLATION_COUNTER_MAX 10.0
+#define CONCEPT_INTERPOLATION_COUNTER_MIN -10.0
+#define CONCEPT_LAYERS 10 //with 2^10=1024 
 
 //Data structure//
 //--------------//
@@ -43,7 +47,7 @@ void Concept_SetSDR(Concept *concept, SDR sdr);
 //print a concept
 void Concept_Print(Concept *concept);
 //Interpolate concepts, see https://github.com/patham9/ANSNA/wiki/Concept:-Conceptual-Interpolation
-void Concept_SDRInterpolation(Concept *concept, SDR *eventSDR, Truth matchTruth);
+void Concept_SDRInterpolation(int layer, Concept *concept, SDR *eventSDR);
 //Local inference: confirming anticipations, firing spikes, matching event, adjusting Usage
 Event Concept_LocalInference(int layer, Concept *c, Event *e, long currentTime);
 

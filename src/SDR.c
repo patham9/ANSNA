@@ -189,3 +189,12 @@ void SDR_INIT()
     SDR_GeneratePermutation(SDR_permS, SDR_permS_inv);
     SDR_GeneratePermutation(SDR_permP, SDR_permP_inv);
 }
+
+SDR SDR_Intersection(SDR *a, SDR *b)
+{
+    SDR c;
+    ITERATE_SDR_BLOCKS(i,
+        c.blocks[i] = a->blocks[i] & b->blocks[i];
+    )
+    return c;
+}

@@ -58,25 +58,30 @@ bool Memory_FindConceptBySDR(int layer, SDR *sdr, SDR_HASH_TYPE sdr_hash, int *r
     return false;
 }
 
+void Memory_ConceptualizeInLayer(int layer, SDR *sdr, SDR_HASH_TYPE hash)
+{
+    if(concepts[layer].itemsAmount < concepts[layer].maxElements && !Memory_FindConceptBySDR(layer, sdr, hash, NULL))
+    {
+        Concept *addedConcept = NULL;
+        //try to add it, and if successful add to voting structure
+        PriorityQueue_Push_Feedback feedback = PriorityQueue_Push(&concepts[layer], 0.0);
+        if(feedback.added)
+        {
+            addedConcept = feedback.addedItem.address;
+            *addedConcept = (Concept) {0};
+            Concept_SetSDR(addedConcept, *sdr);
+            addedConcept->id = concept_id;
+            concept_id++;
+        }
+    }
+}
+
 void Memory_Conceptualize(SDR *sdr)
 {
     SDR_HASH_TYPE hash = SDR_Hash(sdr);
     for(int l=0; l<CONCEPT_LAYERS; l++)
     {
-        if(!Memory_FindConceptBySDR(l, sdr, hash, NULL))
-        {
-            Concept *addedConcept = NULL;
-            //try to add it, and if successful add to voting structure
-            PriorityQueue_Push_Feedback feedback = PriorityQueue_Push(&concepts[l], 0.0);
-            if(feedback.added)
-            {
-                addedConcept = feedback.addedItem.address;
-                *addedConcept = (Concept) {0};
-                Concept_SetSDR(addedConcept, *sdr);
-                addedConcept->id = concept_id;
-                concept_id++;
-            }
-        }
+        Memory_ConceptualizeInLayer(l, sdr, hash);
     }
 }
 

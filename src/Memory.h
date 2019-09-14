@@ -16,7 +16,6 @@
 //Parameters//
 //----------//
 #define CONCEPTS_MAX 1024 //always adjust both
-#define CONCEPT_LAYERS 10 //with 2^10=1024 
 #define USE_HASHING true
 #define PROPAGATE_GOAL_SPIKES true
 #define PROPAGATION_THRESHOLD 0.6
@@ -44,6 +43,8 @@ EventInspector event_inspector;
 void Memory_INIT();
 //Find a concept
 bool Memory_FindConceptBySDR(int layer, SDR *sdr, SDR_HASH_TYPE sdr_hash, int *returnIndex);
+//Create a new concept in specific layer
+void Memory_ConceptualizeInLayer(int layer, SDR *sdr, SDR_HASH_TYPE hash);
 //Create a new concept
 void Memory_Conceptualize(SDR *sdr);
 //Return closest concept
