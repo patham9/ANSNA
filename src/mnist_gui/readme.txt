@@ -4,7 +4,7 @@ Installation:
 Copy ANSNA source into the ANSNA folder, except main.c
 Make sure you have glfw-2.7.9 installed.
 Make sure to download https://pjreddie.com/media/files/mnist_train.csv and to put into the mnist_gui directory.
-Then build, run and enjoy.
+Then build using ./build.sh, run and enjoy.
 
 Note:
 Takes a minute to train on 1000 examples before it shows results.
