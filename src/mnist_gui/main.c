@@ -254,6 +254,7 @@ void draw_GUI()
 	//hrend_DrawPixelValue(positionX,0.01,0.9,2.5,0.016);
     
 }
+int pensilsize = 4;
 void mouse_dragged(EventArgs *e)
 {
     int x = (e->mx-80)/2;
@@ -266,7 +267,7 @@ void mouse_dragged(EventArgs *e)
         int realy = y;
         int realx = sdrwidth - x;
         SDR_WriteBit(&globSDR,realy*sdrwidth + realx,1);
-        for(int i=0;i<3;i++)
+        for(int i=0;i<pensilsize-1;i++)
         {
             if(realy*sdrwidth + (realx+i) < SDR_SIZE)
             {
@@ -323,6 +324,15 @@ void key_used(EventArgs *e)
     {
         globSDR = (SDR) {0};
     }
+    if(e->mk=='P') //plus
+    {
+        pensilsize++;
+    }
+    if(e->mk=='M') //minus
+    {
+        pensilsize--;
+    }
+    pensilsize = MAX(0, pensilsize);
 }
 bool getimage(char* line)
 {
@@ -368,7 +378,7 @@ void minist_load()
 {
     FILE* stream = fopen("mnist_train.csv", "r");
     char line[100000];
-    int samples = 1000;
+    int samples = 50;
     while (samples > 0 && fgets(line, 100000, stream))
     {
         char* tmp = strdup(line);
@@ -391,7 +401,9 @@ void init()
     hinput_AddMouseDragged(mouse_dragged);
 	hinput_AddKeyUp(key_used);
     glGenTextures(1, &texture);
+    CONVOLUTION = false;
     minist_load();
+    CONVOLUTION = true;
     //ANSNA_PongInit();
 }
 int main()

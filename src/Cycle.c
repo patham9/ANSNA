@@ -35,6 +35,7 @@ static bool Cycle_ActivateConcept(int layer, Concept *c, Event *e, long currentT
     return false;
 }
 
+int POOLING = false;
 //Process an event, by creating a concept, or activating an existing
 static bool Cycle_ProcessEvent(Event *e, long currentTime)
 {
@@ -54,7 +55,24 @@ static bool Cycle_ProcessEvent(Event *e, long currentTime)
             SDR common = SDR_Intersection(&c->sdr, &e->sdr);
             if(l < CONCEPT_LAYERS-1)
             {
-                Memory_ConceptualizeInLayer(l+1, &common, SDR_Hash(&common));
+                if(POOLING)
+                {
+                    int step = 1;
+                    for(int h=0; h<l; h++) //subsampling steps
+                    {
+                        step += 1;
+                    }
+                    SDR subsample = {0};
+                    for(int i=0, k=0; i<SDR_SIZE; i+=step, k++)
+                    {
+                        SDR_WriteBit(&subsample, k, SDR_ReadBit(&common, i));
+                    }
+                    Memory_ConceptualizeInLayer(l+1, &subsample, SDR_Hash(&common));
+                }
+                else
+                {
+                    Memory_ConceptualizeInLayer(l+1, &common, SDR_Hash(&common));
+                }
             }
         }
     }

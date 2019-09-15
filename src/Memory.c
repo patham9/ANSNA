@@ -85,6 +85,8 @@ void Memory_Conceptualize(SDR *sdr)
     }
 }
 
+int CONVOLUTION = false;
+int HAMMING = false;
 bool Memory_getClosestConcept(int layer, SDR *sdr, SDR_HASH_TYPE sdr_hash, int *returnIndex)
 {
     if(concepts[layer].itemsAmount == 0)
@@ -98,14 +100,73 @@ bool Memory_getClosestConcept(int layer, SDR *sdr, SDR_HASH_TYPE sdr_hash, int *
         return true;
     }
     int best_i = -1;
-    double bestValSoFar = -1;
-    for(int i=0; i<concepts[layer].itemsAmount; i++)
+    double bestValSoFar = -SDR_SIZE-1;
+    if(HAMMING)
     {
-        double curVal = Truth_Expectation(SDR_Inheritance(sdr, &(((Concept*)concepts[layer].items[i].address)->sdr)));
-        if(curVal > bestValSoFar)
+        if(!CONVOLUTION)
         {
-            bestValSoFar = curVal;
-            best_i = i;
+            for(int i=0; i<concepts[layer].itemsAmount; i++)
+            {
+                SDR *sdr2 = &(((Concept*)concepts[layer].items[i].address)->sdr);
+                SDR diff = SDR_Xor(sdr, sdr2);
+                double curVal = -SDR_CountTrue(&diff);
+                if(curVal > bestValSoFar)
+                {
+                    bestValSoFar = curVal;
+                    best_i = i;
+                }
+            }
+        }
+        else
+        {
+            SDR cur = *sdr;
+            for(int i=0; i<SDR_SIZE; i++)
+            {
+                cur = SDR_PermuteByRotation(&cur, true);
+                for(int i=0; i<concepts[layer].itemsAmount; i++)
+                {
+                    SDR *sdr2 = &(((Concept*)concepts[layer].items[i].address)->sdr);
+                    SDR diff = SDR_Xor(&cur, sdr2);
+                    double curVal = -SDR_CountTrue(&diff);
+                    if(curVal > bestValSoFar)
+                    {
+                        bestValSoFar = curVal;
+                        best_i = i;
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        if(!CONVOLUTION)
+        {
+            for(int i=0; i<concepts[layer].itemsAmount; i++)
+            {
+                double curVal = Truth_Expectation(SDR_Inheritance(sdr, &(((Concept*)concepts[layer].items[i].address)->sdr)));
+                if(curVal > bestValSoFar)
+                {
+                    bestValSoFar = curVal;
+                    best_i = i;
+                }
+            }
+        }
+        else
+        {
+            SDR cur = *sdr;
+            for(int i=0; i<SDR_SIZE; i++)
+            {
+                cur = SDR_PermuteByRotation(&cur, true);
+                for(int i=0; i<concepts[layer].itemsAmount; i++)
+                {
+                    double curVal = Truth_Expectation(SDR_Inheritance(&cur, &(((Concept*)concepts[layer].items[i].address)->sdr)));
+                    if(curVal > bestValSoFar)
+                    {
+                        bestValSoFar = curVal;
+                        best_i = i;
+                    }
+                }
+            }
         }
     }
     if(best_i == -1) //TODO how?

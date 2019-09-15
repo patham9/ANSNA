@@ -15,12 +15,14 @@
 
 //Parameters//
 //----------//
-#define CONCEPTS_MAX 1024 //always adjust both
+#define CONCEPTS_MAX 512 //always adjust both
 #define USE_HASHING true
 #define PROPAGATE_GOAL_SPIKES true
 #define PROPAGATION_THRESHOLD 0.6
 #define PROPAGATION_ITERATIONS 5
-
+extern int CONVOLUTION;
+extern int HAMMING;
+extern int POOLING;
 //Data structure//
 //--------------//
 //Data structures

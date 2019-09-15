@@ -96,5 +96,7 @@ SDR_HASH_TYPE SDR_Hash(SDR *sdr);
 void SDR_INIT();
 //SDR intersection
 SDR SDR_Intersection(SDR *a, SDR *b);
+//SDR xor
+SDR SDR_Xor(SDR *a, SDR *b);
 
 #endif

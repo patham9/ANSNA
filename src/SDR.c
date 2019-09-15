@@ -46,7 +46,7 @@ int SDR_CountTrue(SDR *sdr)
 }
 
 //Xor of both SDR's
-static SDR SDR_Xor(SDR *a, SDR *b)
+SDR SDR_Xor(SDR *a, SDR *b)
 {
     SDR c;
     ITERATE_SDR_BLOCKS(i,
