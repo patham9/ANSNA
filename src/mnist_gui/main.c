@@ -378,7 +378,7 @@ void minist_load()
 {
     FILE* stream = fopen("mnist_train.csv", "r");
     char line[100000];
-    int samples = 50;
+    int samples = 1000;
     while (samples > 0 && fgets(line, 100000, stream))
     {
         char* tmp = strdup(line);
