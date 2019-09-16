@@ -99,6 +99,7 @@ bool Memory_getClosestConcept(int layer, SDR *sdr, SDR_HASH_TYPE sdr_hash, int *
         *returnIndex = foundSameConcept_i;
         return true;
     }
+    SDR best_sdr = *sdr;
     int best_i = -1;
     double bestValSoFar = -SDR_SIZE-1;
     if(HAMMING)
@@ -132,6 +133,7 @@ bool Memory_getClosestConcept(int layer, SDR *sdr, SDR_HASH_TYPE sdr_hash, int *
                     {
                         bestValSoFar = curVal;
                         best_i = i;
+                        best_sdr = cur;
                     }
                 }
             }
@@ -164,6 +166,7 @@ bool Memory_getClosestConcept(int layer, SDR *sdr, SDR_HASH_TYPE sdr_hash, int *
                     {
                         bestValSoFar = curVal;
                         best_i = i;
+                        best_sdr = cur;
                     }
                 }
             }
@@ -173,6 +176,7 @@ bool Memory_getClosestConcept(int layer, SDR *sdr, SDR_HASH_TYPE sdr_hash, int *
     {
         return false;
     }
+    *sdr = best_sdr;
     *returnIndex = best_i;
     return true;
 }
