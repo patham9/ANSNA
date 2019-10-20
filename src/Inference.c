@@ -18,7 +18,7 @@ Event Inference_BeliefIntersection(Event *a, Event *b)
     DERIVATION_STAMP_AND_TIME(a,b)
     return (Event) { .sdr = SDR_Tuple(&a->sdr,&b->sdr),
                      .type = EVENT_TYPE_BELIEF,
-                     .truth = Truth_Intersection(truthA, truthB),
+                     .truth = b->truth,
                      .stamp = conclusionStamp, 
                      .occurrenceTime = conclusionTime };
 }

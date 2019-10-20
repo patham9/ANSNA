@@ -28,6 +28,8 @@ typedef struct
 
 //Methods//
 //-------//
+//assumption of failure, also works for "do nothing operator"
+void Decision_AssumptionOfFailure(int operationID);
 //ANSNA decision making rule applying when goal is an operation
 bool Decision_Making(Event *goal, long currentTime);
 

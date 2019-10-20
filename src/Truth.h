@@ -29,6 +29,7 @@ typedef struct {
 
 //Methods//
 //-------//
+Truth Truth_Bound(Truth v);
 double Truth_w2c(double w);
 double Truth_c2w(double c);
 double Truth_Expectation(Truth v);

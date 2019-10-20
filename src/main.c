@@ -141,7 +141,8 @@ void Table_Test()
         Implication imp = (Implication) { .sdr = Encode_Scalar(1,TABLE_SIZE*2,i), 
                                           .truth = (Truth) { .frequency = 1.0, .confidence = 1.0/((double)(i+1)) },
                                           .stamp = (Stamp) { .evidentalBase = {i} },
-                                          .occurrenceTimeOffset = 10 };
+                                          .occurrenceTimeOffset = 10,
+                                          .revisions = 1 };
         Table_Add(&table, &imp);
     }
     for(int i=0; i<TABLE_SIZE; i++)
@@ -151,7 +152,8 @@ void Table_Test()
     Implication imp = (Implication) { .sdr = Encode_Term("test"), 
                                       .truth = (Truth) { .frequency = 1.0, .confidence = 0.9},
                                       .stamp = (Stamp) { .evidentalBase = {TABLE_SIZE*2+1} },
-                                      .occurrenceTimeOffset = 10 };
+                                      .occurrenceTimeOffset = 10,
+                                      .revisions = 1 };
     assert(table.array[0].truth.confidence==0.5, "The highest confidence one should be the first.");
     Table_AddAndRevise(&table, &imp, "");
     assert(table.array[0].truth.confidence>0.5, "The revision result should be more confident than the table element that existed.");
@@ -1201,9 +1203,93 @@ void ANSNA_TestChamber()
     }
 }
 
+bool op_1_executed = false;
+void op_1()
+{
+    op_1_executed = true;
+}
+bool op_2_executed = false;
+void op_2()
+{
+    op_2_executed = true;
+}
+bool op_3_executed = false;
+void op_3()
+{
+    op_3_executed = true;
+}
+void Sequence_Test()
+{
+    OUTPUT=0;
+    ANSNA_INIT();
+    CONCEPT_FORMATION_NOVELTY = 0;
+    MOTOR_BABBLING_CHANCE = 0;
+    puts(">>Sequence test start");
+    ANSNA_AddOperation(Encode_Term("op_1"), op_1); 
+    ANSNA_AddOperation(Encode_Term("op_2"), op_2); 
+    ANSNA_AddOperation(Encode_Term("op_3"), op_3); 
+    for(int i=0;i<100;i++)
+    {
+        ANSNA_AddInputBelief(Encode_Term("a")); //0 2 4 5
+        ANSNA_AddInputBelief(Encode_Term("b"));
+        ANSNA_AddInputBelief(Encode_Term("op_1"));
+        ANSNA_AddInputBelief(Encode_Term("g"));
+        ANSNA_Cycles(100);
+    }
+    for(int i=0;i<2000;i++)
+    {
+        ANSNA_AddInputBelief(Encode_Term("a"));
+        ANSNA_AddInputBelief(Encode_Term("op_1"));
+        ANSNA_Cycles(100);
+    }
+    for(int i=0;i<2000;i++)
+    {
+        ANSNA_AddInputBelief(Encode_Term("b"));
+        ANSNA_AddInputBelief(Encode_Term("op_1"));
+        ANSNA_Cycles(100);
+    }
+    /*for(int i=0;i<10;i++)
+    {
+        ANSNA_AddInputBelief(Encode_Term("b"));
+        ANSNA_AddInputBelief(Encode_Term("op_2"));
+        ANSNA_AddInputBelief(Encode_Term("g"));
+        ANSNA_Cycles(100);
+    }
+    for(int i=0;i<10;i++)
+    {
+        ANSNA_AddInputBelief(Encode_Term("a"));
+        ANSNA_AddInputBelief(Encode_Term("op_3"));
+        ANSNA_AddInputBelief(Encode_Term("g"));
+        ANSNA_Cycles(100);
+    }*/
+    ANSNA_AddInputBelief(Encode_Term("a"));
+    ANSNA_AddInputBelief(Encode_Term("b"));
+    ANSNA_AddInputGoal(Encode_Term("g"));
+    assert(op_1_executed && !op_2_executed && !op_3_executed, "Expected op1 execution");
+    op_1_executed = op_2_executed = op_3_executed = false;
+    exit(0);
+    ANSNA_Cycles(100);
+    ANSNA_AddInputBelief(Encode_Term("b"));
+    ANSNA_AddInputGoal(Encode_Term("g"));
+    assert(!op_1_executed && op_2_executed && !op_3_executed, "Expected op2 execution");
+    op_1_executed = op_2_executed = op_3_executed = false;
+    ANSNA_Cycles(100);
+    ANSNA_AddInputBelief(Encode_Term("a"));
+    ANSNA_AddInputGoal(Encode_Term("g"));
+    assert(!op_1_executed && !op_2_executed && op_3_executed, "Expected op3 execution");
+    op_1_executed = op_2_executed = op_3_executed = false;
+    MOTOR_BABBLING_CHANCE = MOTOR_BABBLING_CHANCE_INITIAL;
+    CONCEPT_FORMATION_NOVELTY = CONCEPT_FORMATION_NOVELTY_INITIAL;
+    puts(">>Sequence Test successul");
+}
+
 
 int main(int argc, char *argv[])
 {
+    
+    //Sequence_Test();
+    //if(true)
+    //    return 0;
     //printf("sizeof concept %d\n",(int) sizeof(Concept));
     //exit(0);
     if(argc == 2) //pong

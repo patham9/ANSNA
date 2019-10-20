@@ -36,7 +36,7 @@ void FIFO_Add(Event *event, FIFO *fifo)
 
 Event* FIFO_GetKthNewestSequence(FIFO *fifo, int k, int len)
 {
-    if(fifo->itemsAmount == 0 || k >= FIFO_SIZE)
+    if(fifo->itemsAmount == 0 || k >= fifo->itemsAmount)
     {
         return NULL;
     }
