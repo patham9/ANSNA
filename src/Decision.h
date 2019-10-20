@@ -12,7 +12,7 @@
 //----------//
 //truth expectation needed for executions
 #define DECISION_THRESHOLD 0.501
-#define ANTICIPATION_THRESHOLD 0.54
+#define ANTICIPATION_THRESHOLD 0.6
 //motor babbling chance
 #define MOTOR_BABBLING_CHANCE_INITIAL 0.2
 extern double MOTOR_BABBLING_CHANCE;
@@ -29,7 +29,7 @@ typedef struct
 //Methods//
 //-------//
 //assumption of failure, also works for "do nothing operator"
-void Decision_AssumptionOfFailure(int operationID);
+void Decision_AssumptionOfFailure(int operationID, long currentTime);
 //ANSNA decision making rule applying when goal is an operation
 bool Decision_Making(Event *goal, long currentTime);
 

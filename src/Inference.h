@@ -19,6 +19,8 @@
 
 //Methods//
 //-------//
+//{Event a.} |- Event a. updated to currentTime
+Event Inference_EventUpdate(Event *ev, long currentTime);
 //{Event a., Event b.} |- Event (&/,a,b).
 Event Inference_BeliefIntersection(Event *a, Event *b);
 //{Event a., Event b.} |- Implication <a =/> c>.

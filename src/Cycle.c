@@ -161,7 +161,7 @@ void Cycle_Perform(long currentTime)
             {
                 Cycle_ProcessEvent(toProcess, currentTime);
                 Event postcondition = *toProcess;
-                Decision_AssumptionOfFailure(postcondition.operationID); //collection of negative evidence
+                Decision_AssumptionOfFailure(postcondition.operationID, currentTime); //collection of negative evidence
                 //Mine for <(&/,precondition,operation) =/> postcondition> patterns in the FIFO:
                 if(len == 0) //postcondition always len1
                 {  

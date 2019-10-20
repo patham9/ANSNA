@@ -52,11 +52,11 @@ Decision Decision_RealizeGoal(Event *goal, long currentTime)
             {
                 Relink_Implication(&postc->precondition_beliefs[opi].array[j]);
                 Implication imp = postc->precondition_beliefs[opi].array[j];
-                IN_DEBUG
-                (
+                //IN_DEBUG
+                //(
                     printf("CONSIDERED IMPLICATION: impTruth=(%f, %f) %s \n", imp.truth.frequency, imp.truth.confidence, imp.debug);
                     SDR_Print(&imp.sdr);
-                )
+                //)
                 //now look at how much the precondition is fulfilled
                 Concept *current_prec = imp.sourceConcept;
                 Event *precondition = &current_prec->belief_spike; //a. :|:
@@ -66,9 +66,9 @@ Decision Decision_RealizeGoal(Event *goal, long currentTime)
                     double operationGoalTruthExpectation = Truth_Expectation(Inference_OperationDeduction(&ContextualOperation, precondition, currentTime).truth); //op()! :|:
                     if(operationGoalTruthExpectation > bestTruthExpectation)
                     {
-                        IN_DEBUG
-                        (
-                            printf("CONSIDERED PRECON: %s\n", current_prec->debug);
+                        //IN_DEBUG
+                        //(
+                            printf("CONSIDERED PRECON: desire=%f %s\n", operationGoalTruthExpectation, current_prec->debug);
                             fputs("CONSIDERED PRECON truth ", stdout);
                             Truth_Print(&precondition->truth);
                             fputs("CONSIDERED goal truth ", stdout);
@@ -78,7 +78,7 @@ Decision Decision_RealizeGoal(Event *goal, long currentTime)
                             printf("CONSIDERED time %ld\n", precondition->occurrenceTime);
                             SDR_Print(&current_prec->sdr);
                             SDR_Print(&precondition->sdr);
-                        )
+                        //)
                         prec = current_prec;
                         bestImp = imp;
                         decision.operationID = opi;
@@ -106,7 +106,7 @@ Decision Decision_RealizeGoal(Event *goal, long currentTime)
     return decision;
 }
 
-void Decision_AssumptionOfFailure(int operationID)
+void Decision_AssumptionOfFailure(int operationID, long currentTime)
 {
     assert(operationID >= 0 && operationID < OPERATIONS_MAX, "Wrong operation id, did you inject an event manually?");
     for(int j=0; j<concepts.itemsAmount; j++)
@@ -118,13 +118,14 @@ void Decision_AssumptionOfFailure(int operationID)
             Implication imp = postc->precondition_beliefs[operationID].array[h]; //(&/,a,op) =/> b.
             Concept *current_prec = imp.sourceConcept;
             Event *precondition = &current_prec->belief_spike; //a. :|:
+            Event updated_precondition = Inference_EventUpdate(precondition, currentTime);
             if(precondition != NULL)
             {
                 Event op = (Event) { .type = EVENT_TYPE_BELIEF,
                                      .truth = { .frequency = 1.0, .confidence = 0.9 },
                                      .occurrenceTime = currentTime,
                                      .operationID = operationID };
-                Event seqop = Inference_BeliefIntersection(precondition, &op); //(&/,a,op). :|:
+                Event seqop = Inference_BeliefIntersection(&updated_precondition, &op); //(&/,a,op). :|:
                 Event result = Inference_BeliefDeduction(&seqop, &imp); //b. :/:
                 if(Truth_Expectation(result.truth) > ANTICIPATION_THRESHOLD)
                 {

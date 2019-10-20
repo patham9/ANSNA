@@ -18,7 +18,7 @@ Event Inference_BeliefIntersection(Event *a, Event *b)
     DERIVATION_STAMP_AND_TIME(a,b)
     return (Event) { .sdr = SDR_Tuple(&a->sdr,&b->sdr),
                      .type = EVENT_TYPE_BELIEF,
-                     .truth = b->truth,
+                     .truth = b->truth, //Truth_Intersection(truthA,truthB)
                      .stamp = conclusionStamp, 
                      .occurrenceTime = conclusionTime };
 }
@@ -73,7 +73,7 @@ Event Inference_GoalDeduction(Event *component, Implication *compound)
 }
 
 //{Event a.} |- Event a. updated to currentTime
-static Event Inference_EventUpdate(Event *ev, long currentTime)
+Event Inference_EventUpdate(Event *ev, long currentTime)
 {
     Event ret = *ev;
     ret.truth = Truth_Projection(ret.truth, ret.occurrenceTime, currentTime);

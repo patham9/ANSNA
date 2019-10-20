@@ -1287,9 +1287,9 @@ void Sequence_Test()
 int main(int argc, char *argv[])
 {
     
-    //Sequence_Test();
-    //if(true)
-    //    return 0;
+    Sequence_Test();
+    if(true)
+        return 0;
     //printf("sizeof concept %d\n",(int) sizeof(Concept));
     //exit(0);
     if(argc == 2) //pong
