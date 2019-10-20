@@ -64,21 +64,21 @@ Decision Decision_RealizeGoal(Event *goal, long currentTime)
                 {
                     Event ContextualOperation = Inference_GoalDeduction(goal, &imp); //(&/,a,op())! :\:
                     double operationGoalTruthExpectation = Truth_Expectation(Inference_OperationDeduction(&ContextualOperation, precondition, currentTime).truth); //op()! :|:
+                    //IN_DEBUG
+                    //(
+                        printf("CONSIDERED PRECON: desire=%f %s\n", operationGoalTruthExpectation, current_prec->debug);
+                        fputs("CONSIDERED PRECON truth ", stdout);
+                        Truth_Print(&precondition->truth);
+                        fputs("CONSIDERED goal truth ", stdout);
+                        Truth_Print(&goal->truth);
+                        fputs("CONSIDERED imp truth ", stdout);
+                        Truth_Print(&imp.truth);
+                        printf("CONSIDERED time %ld\n", precondition->occurrenceTime);
+                        SDR_Print(&current_prec->sdr);
+                        SDR_Print(&precondition->sdr);
+                    //)
                     if(operationGoalTruthExpectation > bestTruthExpectation)
                     {
-                        //IN_DEBUG
-                        //(
-                            printf("CONSIDERED PRECON: desire=%f %s\n", operationGoalTruthExpectation, current_prec->debug);
-                            fputs("CONSIDERED PRECON truth ", stdout);
-                            Truth_Print(&precondition->truth);
-                            fputs("CONSIDERED goal truth ", stdout);
-                            Truth_Print(&goal->truth);
-                            fputs("CONSIDERED imp truth ", stdout);
-                            Truth_Print(&imp.truth);
-                            printf("CONSIDERED time %ld\n", precondition->occurrenceTime);
-                            SDR_Print(&current_prec->sdr);
-                            SDR_Print(&precondition->sdr);
-                        //)
                         prec = current_prec;
                         bestImp = imp;
                         decision.operationID = opi;
