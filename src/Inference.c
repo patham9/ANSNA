@@ -103,12 +103,12 @@ Event Inference_IncreasedActionPotential(Event *existing_potential, Event *incom
     }
     else
     {
-        //simpler handling for now:
+        /*//simpler handling for now:
         if(incoming_spike->occurrenceTime > existing_potential->occurrenceTime)
         {
             return *incoming_spike; 
-        }
-        /*double expExisting = Truth_Expectation(Inference_EventUpdate(existing_potential, currentTime).truth);
+        }*/
+        double expExisting = Truth_Expectation(Inference_EventUpdate(existing_potential, currentTime).truth);
         double expIncoming = Truth_Expectation(Inference_EventUpdate(incoming_spike, currentTime).truth);
         //check if there is evidental overlap
         bool overlap = Stamp_checkOverlap(&incoming_spike->stamp, &existing_potential->stamp);
@@ -133,7 +133,7 @@ Event Inference_IncreasedActionPotential(Event *existing_potential, Event *incom
             {
                 return *incoming_spike;
             }
-        }*/
+        }
     }
     return *existing_potential;
 }

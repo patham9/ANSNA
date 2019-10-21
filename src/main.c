@@ -56,7 +56,7 @@ void FIFO_Test()
                                  .type = EVENT_TYPE_BELIEF, 
                                  .truth = {.frequency = 1.0, .confidence = 0.9},
                                  .stamp = (Stamp) { .evidentalBase = {i} }, 
-                                 .occurrenceTime = i*10 };
+                                 .occurrenceTime = FIFO_SIZE*2-i*10 };
         FIFO_Add(&event1, &fifo);
     }
     for(int i=0; i<FIFO_SIZE; i++)
@@ -75,6 +75,7 @@ void FIFO_Test()
     for(int i=0; i<FIFO_SIZE*2; i++)
     {
         SDR zero = (SDR) {0};
+        event2.occurrenceTime += 1;
         FIFO_Add(&event2, &fifo2);
         if(i < FIFO_SIZE && i < MAX_SEQUENCE_LEN)
         {
