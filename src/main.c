@@ -1236,13 +1236,13 @@ void Sequence_Test()
         ANSNA_AddInputBelief(Encode_Term("g"));
         ANSNA_Cycles(100);
     }
-    for(int i=0;i<2000;i++)
+    for(int i=0;i<100;i++)
     {
         ANSNA_AddInputBelief(Encode_Term("a"));
         ANSNA_AddInputBelief(Encode_Term("op_1"));
         ANSNA_Cycles(100);
     }
-    for(int i=0;i<2000;i++)
+    for(int i=0;i<100;i++)
     {
         ANSNA_AddInputBelief(Encode_Term("b"));
         ANSNA_AddInputBelief(Encode_Term("op_1"));
@@ -1287,9 +1287,9 @@ void Sequence_Test()
 int main(int argc, char *argv[])
 {
     
-    Sequence_Test();
-    if(true)
-        return 0;
+    //Sequence_Test();
+    //if(true)
+    //    return 0;
     //printf("sizeof concept %d\n",(int) sizeof(Concept));
     //exit(0);
     if(argc == 2) //pong

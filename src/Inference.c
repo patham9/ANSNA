@@ -15,12 +15,13 @@ static double weighted_average(double a1, double a2, double w1, double w2)
 //{Event a., Event b.} |- Event (&/,a,b).
 Event Inference_BeliefIntersection(Event *a, Event *b)
 {
+    assert(b->occurrenceTime >= a->occurrenceTime, "after(b,a) violated in Inference_BeliefIntersection");
     DERIVATION_STAMP_AND_TIME(a,b)
     return (Event) { .sdr = SDR_Tuple(&a->sdr,&b->sdr),
                      .type = EVENT_TYPE_BELIEF,
-                     .truth = b->truth, //Truth_Intersection(truthA,truthB)
+                     .truth = Truth_Intersection(truthA,truthB), //b->truth
                      .stamp = conclusionStamp, 
-                     .occurrenceTime = conclusionTime };
+                     .occurrenceTime = conclusionTime }; //b->occurrenceTime
 }
 
 //{Event a., Event b., after(b,a)} |- Implication <a =/> b>.
@@ -102,7 +103,12 @@ Event Inference_IncreasedActionPotential(Event *existing_potential, Event *incom
     }
     else
     {
-        double expExisting = Truth_Expectation(Inference_EventUpdate(existing_potential, currentTime).truth);
+        //simpler handling for now:
+        if(incoming_spike->occurrenceTime > existing_potential->occurrenceTime)
+        {
+            return *incoming_spike; 
+        }
+        /*double expExisting = Truth_Expectation(Inference_EventUpdate(existing_potential, currentTime).truth);
         double expIncoming = Truth_Expectation(Inference_EventUpdate(incoming_spike, currentTime).truth);
         //check if there is evidental overlap
         bool overlap = Stamp_checkOverlap(&incoming_spike->stamp, &existing_potential->stamp);
@@ -127,7 +133,7 @@ Event Inference_IncreasedActionPotential(Event *existing_potential, Event *incom
             {
                 return *incoming_spike;
             }
-        }
+        }*/
     }
     return *existing_potential;
 }

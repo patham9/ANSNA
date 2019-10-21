@@ -112,7 +112,7 @@ bool Memory_addEvent(Event *event)
     }
     if(event->type == EVENT_TYPE_BELIEF)
     {
-        FIFO_Add(event, &belief_events); //not revised yet
+        FIFO_Add(event, &belief_events);
         return true;
     }
     if(event->type == EVENT_TYPE_GOAL)

@@ -52,11 +52,11 @@ Decision Decision_RealizeGoal(Event *goal, long currentTime)
             {
                 Relink_Implication(&postc->precondition_beliefs[opi].array[j]);
                 Implication imp = postc->precondition_beliefs[opi].array[j];
-                //IN_DEBUG
-                //(
+                IN_DEBUG
+                (
                     printf("CONSIDERED IMPLICATION: impTruth=(%f, %f) %s \n", imp.truth.frequency, imp.truth.confidence, imp.debug);
                     SDR_Print(&imp.sdr);
-                //)
+                )
                 //now look at how much the precondition is fulfilled
                 Concept *current_prec = imp.sourceConcept;
                 Event *precondition = &current_prec->belief_spike; //a. :|:
@@ -64,8 +64,8 @@ Decision Decision_RealizeGoal(Event *goal, long currentTime)
                 {
                     Event ContextualOperation = Inference_GoalDeduction(goal, &imp); //(&/,a,op())! :\:
                     double operationGoalTruthExpectation = Truth_Expectation(Inference_OperationDeduction(&ContextualOperation, precondition, currentTime).truth); //op()! :|:
-                    //IN_DEBUG
-                    //(
+                    IN_DEBUG
+                    (
                         printf("CONSIDERED PRECON: desire=%f %s\n", operationGoalTruthExpectation, current_prec->debug);
                         fputs("CONSIDERED PRECON truth ", stdout);
                         Truth_Print(&precondition->truth);
@@ -76,7 +76,7 @@ Decision Decision_RealizeGoal(Event *goal, long currentTime)
                         printf("CONSIDERED time %ld\n", precondition->occurrenceTime);
                         SDR_Print(&current_prec->sdr);
                         SDR_Print(&precondition->sdr);
-                    //)
+                    )
                     if(operationGoalTruthExpectation > bestTruthExpectation)
                     {
                         prec = current_prec;
