@@ -108,6 +108,8 @@ Decision Decision_RealizeGoal(Event *goal, long currentTime)
 
 void Decision_AssumptionOfFailure(int operationID, long currentTime)
 {
+    if(true)
+        return;
     assert(operationID >= 0 && operationID < OPERATIONS_MAX, "Wrong operation id, did you inject an event manually?");
     for(int j=0; j<concepts.itemsAmount; j++)
     {
@@ -172,6 +174,10 @@ bool Decision_Making(Event *goal, long currentTime)
     if(decision.execute && decision.operationID)
     {
         Decision_InjectActionEvent(&decision);
+    }
+    if(decision.execute) //old way
+    {
+        Decision_AssumptionOfFailure(decision.operationID, currentTime);
     }
     return decision.execute;
 }
