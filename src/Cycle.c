@@ -160,7 +160,7 @@ void Cycle_Perform(long currentTime)
             {
                 Cycle_ProcessEvent(toProcess, currentTime);
                 Event postcondition = *toProcess;
-                Decision_AssumptionOfFailure(postcondition.operationID, currentTime); //collection of negative evidence, new way
+                //Decision_AssumptionOfFailure(postcondition.operationID, currentTime); //alternative, would include motor babbling and normal events
                 //Mine for <(&/,precondition,operation) =/> postcondition> patterns in the FIFO:
                 if(len == 0) //postcondition always len1
                 {  

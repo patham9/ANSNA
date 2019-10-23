@@ -28,6 +28,7 @@ void ANSNA_INIT();
 //Run the system for a certain amount of cycles
 void ANSNA_Cycles(int cycles);
 //Add input
+Event ANSNA_AddInputInternal(SDR sdr, char type, Truth truth, bool motorBabble);
 Event ANSNA_AddInput(SDR sdr, char type, Truth truth);
 Event ANSNA_AddInputBelief(SDR sdr);
 Event ANSNA_AddInputGoal(SDR sdr);

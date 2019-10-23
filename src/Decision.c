@@ -8,7 +8,7 @@ void Decision_InjectActionEvent(Decision *decision)
     decision->op = operations[decision->operationID-1];
     (*decision->op.action)();
     //and add operator feedback
-    ANSNA_AddInputBelief(decision->op.sdr);
+    ANSNA_AddInputInternal(decision->op.sdr, EVENT_TYPE_BELIEF, ANSNA_DEFAULT_TRUTH, decision->motorBabble);
 }
 
 //"reflexes" to try different operations, especially important in the beginning
@@ -27,6 +27,7 @@ static Decision Decision_MotorBabbling()
             printf(" ANSNA BABBLE %d\n", decision.operationID);
         )
         decision.execute = true;
+        decision.motorBabble = true;
     }
     return decision;
 }

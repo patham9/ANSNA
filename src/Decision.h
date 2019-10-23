@@ -23,6 +23,7 @@ extern double MOTOR_BABBLING_CHANCE;
 typedef struct
 {
     double desire;
+    bool motorBabble;
     bool execute;
     int operationID;
     Operation op;

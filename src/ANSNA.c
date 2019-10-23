@@ -21,7 +21,7 @@ void ANSNA_Cycles(int cycles)
     }
 }
 
-Event ANSNA_AddInput(SDR sdr, char type, Truth truth)
+Event ANSNA_AddInputInternal(SDR sdr, char type, Truth truth, bool motorBabble)
 {
     Event ev = Event_InputEvent(sdr, type, truth, currentTime);
     int closest_concept_i=0;
@@ -50,9 +50,13 @@ Event ANSNA_AddInput(SDR sdr, char type, Truth truth)
         {
             break;
         }
-        if(SDR_Equal(&operations[i].sdr, &sdr)) //TODO relax to allow parametrized actions
+        if(SDR_Equal(&operations[i].sdr, &sdr))
         {
             ev.operationID = i+1;
+            if(!motorBabble)
+            {
+                Decision_AssumptionOfFailure(ev.operationID, currentTime); //non-babbled ops generate anticipations
+            }
             break;
         }
     }
@@ -60,6 +64,11 @@ Event ANSNA_AddInput(SDR sdr, char type, Truth truth)
     IN_OUTPUT( fputs("INPUT ", stdout); Event_Print(&ev); )
     ANSNA_Cycles(1);
     return ev;
+}
+
+Event ANSNA_AddInput(SDR sdr, char type, Truth truth)
+{
+    return ANSNA_AddInputInternal(sdr, type, truth, false);
 }
 
 Event ANSNA_AddInputBelief(SDR sdr)
