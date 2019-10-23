@@ -15,6 +15,7 @@ typedef struct {
     Stamp stamp;
     //for deciding occurrence time of conclusion:
     long occurrenceTimeOffset;
+    long occurrenceTimeOffsetMax;
     //for efficient spike propagation:
     void *sourceConcept;
     SDR sourceConceptSDR; //to check whether it's still the same

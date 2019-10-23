@@ -107,7 +107,7 @@ Decision Decision_RealizeGoal(Event *goal, long currentTime)
     return decision;
 }
 
-void Decision_AssumptionOfFailure(int operationID, long currentTime)
+void Decision_Anticipate(int operationID, long currentTime)
 {
     assert(operationID >= 0 && operationID < OPERATIONS_MAX, "Wrong operation id, did you inject an event manually?");
     for(int j=0; j<concepts.itemsAmount; j++)
@@ -123,7 +123,7 @@ void Decision_AssumptionOfFailure(int operationID, long currentTime)
             if(precondition != NULL)
             {
                 Event op = { .type = EVENT_TYPE_BELIEF,
-                             .truth = { .frequency = 1.0, .confidence = 0.9 },
+                             .truth = ANSNA_DEFAULT_TRUTH,
                              .occurrenceTime = currentTime,
                              .operationID = operationID };
                 Event seqop = Inference_BeliefIntersection(&updated_precondition, &op); //(&/,a,op). :|:
@@ -131,16 +131,42 @@ void Decision_AssumptionOfFailure(int operationID, long currentTime)
                 if(Truth_Expectation(result.truth) > ANTICIPATION_THRESHOLD)
                 {
                     Implication negative_confirmation = imp;
-                    negative_confirmation.truth = (Truth) { .frequency = 0.0, .confidence = ANTICIPATION_CONFIDENCE };
+                    Truth TNew = { .frequency = 0.0, .confidence = ANSNA_DEFAULT_CONFIDENCE };
+                    Truth TPast = Truth_Projection(ANSNA_DEFAULT_TRUTH, 0, imp.occurrenceTimeOffset);
+                    negative_confirmation.truth = Truth_Induction(TPast, TNew);
                     negative_confirmation.stamp = (Stamp) { .evidentalBase = { -stampID } };
                     IN_DEBUG ( printf("ANTICIPATE %s, future=%ld \n", imp.debug, imp.occurrenceTimeOffset); )
                     assert(negative_confirmation.truth.confidence >= 0.0 && negative_confirmation.truth.confidence <= 1.0, "(666) confidence out of bounds");
-                    Implication *added = Table_AddAndRevise(&postc->precondition_beliefs[operationID], &negative_confirmation, negative_confirmation.debug);
-                    if(added != NULL)
+                    //ANTICIPATON (neg. evidence numbers for now)
+                    bool anticipate = true;
+                    for(int i=0; i<ANTICIPATIONS_MAX; i++)
                     {
-                        added->sourceConcept = negative_confirmation.sourceConcept;
-                        added->sourceConceptSDR = negative_confirmation.sourceConceptSDR;
-                    }                                
+                        if(postc->anticipation_deadline[i] > 0)
+                        {
+                            if(postc->anticipation_negative_confirmation[i].sourceConceptSDRHash == imp.sourceConceptSDRHash && 
+                               SDR_Equal(&postc->anticipation_negative_confirmation[i].sourceConceptSDR, &imp.sourceConceptSDR))
+                            {
+                                anticipate = false;
+                            }
+                        }
+                    }
+                    bool problem = true;
+                    //TODO investigate why problem even occurs after Concept_CheckAnticipationDisappointment(postc, currentTime);
+                    if(anticipate) //already expecting outcome
+                    {
+                        for(int i=0; i<ANTICIPATIONS_MAX; i++)
+                        {
+                            if(postc->anticipation_deadline[i] == 0 || currentTime + imp.occurrenceTimeOffsetMax <= postc->anticipation_deadline[i])
+                            {
+                                problem = false;
+                                postc->anticipation_deadline[i] = currentTime + imp.occurrenceTimeOffsetMax;
+                                postc->anticipation_negative_confirmation[i] = negative_confirmation;
+                                postc->anticipation_operation_id[i] = operationID;
+                            }
+                        }
+                        //assert(!problem,"todo investigate how it can still happen");
+                    }
+                    Concept_CheckAnticipationDisappointment(postc, currentTime);
                     stampID--;
                 }
             }

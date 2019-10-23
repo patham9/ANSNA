@@ -29,6 +29,8 @@ static Decision Cycle_ActivateConcept(Concept *c, Event *e, long currentTime)
             }
         }
     }
+    //confirm anticipation as well:
+    Concept_ConfirmAnticipation(c, e);
     return decision;
 }
 
@@ -149,6 +151,11 @@ static void Cycle_ReinforceLink(Event *a, Event *b, int operationID)
 
 void Cycle_Perform(long currentTime)
 {   
+    //process anticipation
+    for(int i=0; i<concepts.itemsAmount; i++)
+    {
+        Concept_CheckAnticipationDisappointment(concepts.items[i].address, currentTime);
+    }
     //1. process newest event
     if(belief_events.itemsAmount > 0)
     {
@@ -160,7 +167,7 @@ void Cycle_Perform(long currentTime)
             {
                 Cycle_ProcessEvent(toProcess, currentTime);
                 Event postcondition = *toProcess;
-                Decision_AssumptionOfFailure(postcondition.operationID, currentTime); //collection of negative evidence, new way
+                Decision_Anticipate(postcondition.operationID, currentTime); //collection of negative evidence, new way
                 //Mine for <(&/,precondition,operation) =/> postcondition> patterns in the FIFO:
                 if(len == 0) //postcondition always len1
                 {  
