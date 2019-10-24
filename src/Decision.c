@@ -131,9 +131,9 @@ void Decision_Anticipate(int operationID, long currentTime)
                 if(Truth_Expectation(result.truth) > ANTICIPATION_THRESHOLD)
                 {
                     Implication negative_confirmation = imp;
-                    Truth TNew = { .frequency = 0.0, .confidence = ANSNA_DEFAULT_CONFIDENCE };
-                    Truth TPast = Truth_Projection(ANSNA_DEFAULT_TRUTH, 0, imp.occurrenceTimeOffset);
-                    negative_confirmation.truth = Truth_Induction(TPast, TNew);
+                    Truth TNew = { .frequency = 0.0, .confidence = ANTICIPATION_CONFIDENCE };
+                    Truth TPast = Truth_Projection(precondition->truth, 0, imp.occurrenceTimeOffset);
+                    negative_confirmation.truth = Truth_Eternalize(Truth_Induction(TPast, TNew));
                     negative_confirmation.stamp = (Stamp) { .evidentalBase = { -stampID } };
                     IN_DEBUG ( printf("ANTICIPATE %s, future=%ld \n", imp.debug, imp.occurrenceTimeOffset); )
                     assert(negative_confirmation.truth.confidence >= 0.0 && negative_confirmation.truth.confidence <= 1.0, "(666) confidence out of bounds");
@@ -146,7 +146,7 @@ void Decision_Anticipate(int operationID, long currentTime)
                             if(postc->anticipation_negative_confirmation[i].sourceConceptSDRHash == imp.sourceConceptSDRHash && 
                                SDR_Equal(&postc->anticipation_negative_confirmation[i].sourceConceptSDR, &imp.sourceConceptSDR))
                             {
-                                anticipate = false;
+                    //            anticipate = false;
                             }
                         }
                     }

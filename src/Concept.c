@@ -24,7 +24,7 @@ void Concept_Print(Concept *concept)
 
 void Concept_SDRInterpolation(Concept *concept, SDR *eventSDR, Truth matchTruth)
 {
-    double u = Truth_Expectation(matchTruth);
+/*    double u = Truth_Expectation(matchTruth);
     int k = 0;
     bool rehash = false;
     ITERATE_SDR_BITS(i,j,
@@ -48,7 +48,7 @@ void Concept_SDRInterpolation(Concept *concept, SDR *eventSDR, Truth matchTruth)
     if(rehash)
     {
         concept->sdr_hash = SDR_Hash(&concept->sdr);
-    }
+    }*/
 }
 
 void Concept_CheckAnticipationDisappointment(Concept *c, long currentTime)
