@@ -8,7 +8,6 @@ static Decision Cycle_ActivateConcept(Concept *c, Event *e, long currentTime)
     Event eMatch = Memory_MatchEventToConcept(c, e);
     if(eMatch.truth.confidence > MIN_CONFIDENCE)
     {
-        Concept_SDRInterpolation(c, &e->sdr, eMatch.truth);
         c->usage = Usage_use(c->usage, currentTime);          //given its new role it should be doable to add a priorization mechanism to it
         //add event as spike to the concept:
         if(eMatch.type == EVENT_TYPE_BELIEF)
@@ -18,7 +17,7 @@ static Decision Cycle_ActivateConcept(Concept *c, Event *e, long currentTime)
         else
         {
             //pass spike if the concept doesn't have a satisfying motor command
-            decision = Decision_Making(&eMatch, currentTime);
+            decision = Decision_Suggest(&eMatch, currentTime);
             if(!decision.execute)
             {
                 c->incoming_goal_spike = eMatch;
@@ -29,6 +28,8 @@ static Decision Cycle_ActivateConcept(Concept *c, Event *e, long currentTime)
             }
         }
     }
+    //confirm anticipation as well:
+    Anticipation_Confirm(c, e);
     return decision;
 }
 
@@ -73,7 +74,7 @@ static Decision Cycle_PropagateSpikes(long currentTime)
                     for(int j=0; j<postc->precondition_beliefs[opi].itemsAmount; j++)
                     {
                         Implication *imp = &postc->precondition_beliefs[opi].array[j];
-                        Relink_Implication(imp);
+                        Memory_RelinkImplication(imp);
                         Concept *pre = imp->sourceConcept;
                         if(pre->incoming_goal_spike.type == EVENT_TYPE_DELETED || pre->incoming_goal_spike.processed)
                         {
@@ -149,6 +150,11 @@ static void Cycle_ReinforceLink(Event *a, Event *b, int operationID)
 
 void Cycle_Perform(long currentTime)
 {   
+    //process anticipation disappointments
+    for(int i=0; i<concepts.itemsAmount; i++)
+    {
+        Anticipation_Disappoint(concepts.items[i].address, currentTime);
+    }
     //1. process newest event
     if(belief_events.itemsAmount > 0)
     {
@@ -160,7 +166,7 @@ void Cycle_Perform(long currentTime)
             {
                 Cycle_ProcessEvent(toProcess, currentTime);
                 Event postcondition = *toProcess;
-                Decision_AssumptionOfFailure(postcondition.operationID, currentTime); //collection of negative evidence, new way
+                Anticipation_Anticipate(postcondition.operationID, currentTime);
                 //Mine for <(&/,precondition,operation) =/> postcondition> patterns in the FIFO:
                 if(len == 0) //postcondition always len1
                 {  
@@ -228,7 +234,7 @@ void Cycle_Perform(long currentTime)
     }
     if(best_decision.execute && best_decision.operationID > 0)
     {
-        Decision_InjectActionEvent(&best_decision);
+        Decision_Execute(&best_decision);
     }
     //end of iterations, remove spikes
     for(int i=0; i<concepts.itemsAmount; i++)

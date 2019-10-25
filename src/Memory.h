@@ -30,14 +30,12 @@ PriorityQueue concepts;
 FIFO belief_events;
 FIFO goal_events;
 typedef void (*Action)(void);
-typedef void (*EventInspector)(Event *);
 typedef struct
 {
     SDR sdr;
     Action action;
 }Operation;
 Operation operations[OPERATIONS_MAX];
-EventInspector event_inspector;
 
 //Methods//
 //-------//
@@ -55,13 +53,13 @@ void Memory_addConcept(Concept *concept, long currentTime);
 bool Memory_addEvent(Event *event);
 //Add operation to memory
 void Memory_addOperation(Operation op);
-//Propagate spikes
-void Memory_SpikePropagation(long currentTime);
 //Match event to concept
 Event Memory_MatchEventToConcept(Concept *c, Event *e);
 //Whether an event is novel in respect to a concept
 bool Memory_EventIsNovel(Event *event, Concept *c_matched_to);
 //relink implication, so that link stays intact after forgetting
-void Relink_Implication(Implication *imp);
+void Memory_RelinkImplication(Implication *imp);
+//anticipate outcomes
+void Memory_Anticipate(int operationID, long currentTime);
 
 #endif

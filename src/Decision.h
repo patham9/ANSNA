@@ -1,6 +1,11 @@
 #ifndef DECISION_H
 #define DECISION_H
 
+//////////////////////
+//  ANSNA Decision  //
+//////////////////////
+//Realization of goals
+
 //References//
 //----------//
 #include <stdbool.h>
@@ -12,8 +17,6 @@
 //----------//
 //truth expectation needed for executions
 #define DECISION_THRESHOLD 0.501
-#define ANTICIPATION_THRESHOLD 0.52
-#define ANTICIPATION_CONFIDENCE 0.01
 //motor babbling chance
 #define MOTOR_BABBLING_CHANCE_INITIAL 0.2
 extern double MOTOR_BABBLING_CHANCE;
@@ -30,10 +33,8 @@ typedef struct
 
 //Methods//
 //-------//
-//ANSNA decision making rule applying when goal is an operation
-Decision Decision_Making(Event *goal, long currentTime);
-//assumption of failure, also works for "do nothing operator"
-void Decision_AssumptionOfFailure(int operationID, long currentTime);
-//execute decision
-void Decision_InjectActionEvent(Decision *decision);
+//Find the best operation to execute for the goal to realize
+Decision Decision_Suggest(Event *goal, long currentTime);
+//Execute the decision, invoking the procedure and returning feedback
+void Decision_Execute(Decision *decision);
 #endif

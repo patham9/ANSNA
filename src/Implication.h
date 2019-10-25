@@ -1,6 +1,11 @@
 #ifndef BELIEF_H
 #define BELIEF_H
 
+//////////////////////
+//  Implication     //
+//////////////////////
+//essentially allowing concepts to predict activations of others
+
 //References//
 //-----------//
 #include "SDR.h"
@@ -15,6 +20,7 @@ typedef struct {
     Stamp stamp;
     //for deciding occurrence time of conclusion:
     long occurrenceTimeOffset;
+    long occurrenceTimeOffsetMax;
     //for efficient spike propagation:
     void *sourceConcept;
     SDR sourceConceptSDR; //to check whether it's still the same

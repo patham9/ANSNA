@@ -32,7 +32,8 @@ Implication Inference_BeliefInduction(Event *a, Event *b)
     return (Implication) { .sdr = a->sdr, 
                            .truth = Truth_Eternalize(Truth_Induction(truthA, truthB)),
                            .stamp = conclusionStamp,
-                           .occurrenceTimeOffset = b->occurrenceTime - a->occurrenceTime };
+                           .occurrenceTimeOffset = b->occurrenceTime - a->occurrenceTime,
+                           .occurrenceTimeOffsetMax = b->occurrenceTime - a->occurrenceTime };
 }
 
 //{Event a., Event a.} |- Event a.
@@ -56,7 +57,8 @@ Implication Inference_ImplicationRevision(Implication *a, Implication *b)
     Implication ret = (Implication) { .sdr = a->sdr,
                                       .truth = Truth_Revision(a->truth, b->truth),
                                       .stamp = conclusionStamp, 
-                                      .occurrenceTimeOffset = occurrenceTimeOffsetAvg };
+                                      .occurrenceTimeOffset = occurrenceTimeOffsetAvg,
+                                      .occurrenceTimeOffsetMax = MAX(a->occurrenceTimeOffset, b->occurrenceTimeOffset) };
     strcpy(ret.debug, a->debug);
     return ret;
 }
