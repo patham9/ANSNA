@@ -2,7 +2,7 @@
 
 double MOTOR_BABBLING_CHANCE = MOTOR_BABBLING_CHANCE_INITIAL;
 //Inject action event after execution or babbling
-void Decision_InjectActionEvent(Decision *decision)
+void Decision_Execute(Decision *decision)
 {
     assert(decision->operationID > 0, "Operation 0 is reserved for no action");
     decision->op = operations[decision->operationID-1];
@@ -31,8 +31,7 @@ static Decision Decision_MotorBabbling()
     return decision;
 }
 
-int stampID = -1;
-Decision Decision_RealizeGoal(Event *goal, long currentTime)
+static Decision Decision_BestCandidate(Event *goal, long currentTime)
 {
     Decision decision = (Decision) {0};
     int closest_postc_i;
@@ -50,7 +49,7 @@ Decision Decision_RealizeGoal(Event *goal, long currentTime)
             }
             for(int j=0; j<postc->precondition_beliefs[opi].itemsAmount; j++)
             {
-                Relink_Implication(&postc->precondition_beliefs[opi].array[j]);
+                Memory_RelinkImplication(&postc->precondition_beliefs[opi].array[j]);
                 Implication imp = postc->precondition_beliefs[opi].array[j];
                 IN_DEBUG
                 (
@@ -107,74 +106,7 @@ Decision Decision_RealizeGoal(Event *goal, long currentTime)
     return decision;
 }
 
-void Decision_Anticipate(int operationID, long currentTime)
-{
-    assert(operationID >= 0 && operationID < OPERATIONS_MAX, "Wrong operation id, did you inject an event manually?");
-    for(int j=0; j<concepts.itemsAmount; j++)
-    {
-        Concept *postc = concepts.items[j].address;
-        for(int  h=0; h<postc->precondition_beliefs[operationID].itemsAmount; h++)
-        {
-            Relink_Implication(&postc->precondition_beliefs[operationID].array[h]);
-            Implication imp = postc->precondition_beliefs[operationID].array[h]; //(&/,a,op) =/> b.
-            Concept *current_prec = imp.sourceConcept;
-            Event *precondition = &current_prec->belief_spike; //a. :|:
-            Event updated_precondition = Inference_EventUpdate(precondition, currentTime);
-            if(precondition != NULL)
-            {
-                Event op = { .type = EVENT_TYPE_BELIEF,
-                             .truth = ANSNA_DEFAULT_TRUTH,
-                             .occurrenceTime = currentTime,
-                             .operationID = operationID };
-                Event seqop = Inference_BeliefIntersection(&updated_precondition, &op); //(&/,a,op). :|:
-                Event result = Inference_BeliefDeduction(&seqop, &imp); //b. :/:
-                if(Truth_Expectation(result.truth) > ANTICIPATION_THRESHOLD)
-                {
-                    Implication negative_confirmation = imp;
-                    Truth TNew = { .frequency = 0.0, .confidence = ANTICIPATION_CONFIDENCE };
-                    Truth TPast = Truth_Projection(precondition->truth, 0, imp.occurrenceTimeOffset);
-                    negative_confirmation.truth = Truth_Eternalize(Truth_Induction(TPast, TNew));
-                    negative_confirmation.stamp = (Stamp) { .evidentalBase = { -stampID } };
-                    IN_DEBUG ( printf("ANTICIPATE %s, future=%ld \n", imp.debug, imp.occurrenceTimeOffset); )
-                    assert(negative_confirmation.truth.confidence >= 0.0 && negative_confirmation.truth.confidence <= 1.0, "(666) confidence out of bounds");
-                    //ANTICIPATON (neg. evidence numbers for now)
-                    bool anticipate = true;
-                    for(int i=0; i<ANTICIPATIONS_MAX; i++)
-                    {
-                        if(postc->anticipation_deadline[i] > 0)
-                        {
-                            if(postc->anticipation_negative_confirmation[i].sourceConceptSDRHash == imp.sourceConceptSDRHash && 
-                               SDR_Equal(&postc->anticipation_negative_confirmation[i].sourceConceptSDR, &imp.sourceConceptSDR))
-                            {
-                    //            anticipate = false;
-                            }
-                        }
-                    }
-                    bool problem = true;
-                    //TODO investigate why problem even occurs after Concept_CheckAnticipationDisappointment(postc, currentTime);
-                    if(anticipate) //already expecting outcome
-                    {
-                        for(int i=0; i<ANTICIPATIONS_MAX; i++)
-                        {
-                            if(postc->anticipation_deadline[i] == 0 || currentTime + imp.occurrenceTimeOffsetMax <= postc->anticipation_deadline[i])
-                            {
-                                problem = false;
-                                postc->anticipation_deadline[i] = currentTime + imp.occurrenceTimeOffsetMax;
-                                postc->anticipation_negative_confirmation[i] = negative_confirmation;
-                                postc->anticipation_operation_id[i] = operationID;
-                            }
-                        }
-                        //assert(!problem,"todo investigate how it can still happen");
-                    }
-                    Concept_CheckAnticipationDisappointment(postc, currentTime);
-                    stampID--;
-                }
-            }
-        }
-    }
-}
-
-Decision Decision_Making(Event *goal, long currentTime)
+Decision Decision_Suggest(Event *goal, long currentTime)
 {
     Decision decision = {0};
     //try motor babbling with a certain chance
@@ -185,7 +117,7 @@ Decision Decision_Making(Event *goal, long currentTime)
     //try matching op if didn't motor babble
     if(!decision.execute)
     {
-        decision = Decision_RealizeGoal(goal, currentTime);
+        decision = Decision_BestCandidate(goal, currentTime);
     }
     return decision;
 }

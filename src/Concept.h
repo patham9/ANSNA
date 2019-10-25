@@ -15,13 +15,17 @@
 //Parameters//
 //----------//
 #define OPERATIONS_MAX 10
-#define ANTICIPATIONS_MAX 100
+#define ANTICIPATIONS_MAX 50
 #define MIN_CONFIDENCE 0.01
-#define CONCEPT_INTERPOLATION_STRENGTH 0.5
-#define CONCEPT_INTERPOLATION_INIT_STRENGTH 1.0
 
 //Data structure//
 //--------------//
+typedef struct {
+    Implication negative_confirmation;
+    long deadline;
+    long operation_id;
+} AnticipationEntry;
+
 typedef struct {
     int id;
     Usage usage;
@@ -31,14 +35,10 @@ typedef struct {
     Event incoming_goal_spike;
     Event goal_spike;
     Table precondition_beliefs[OPERATIONS_MAX];
-    //Concept interpolation:
-    double sdr_bit_counter[SDR_SIZE];
     //For debugging:
     char debug[50];
     //Anticipation:
-    Implication anticipation_negative_confirmation[ANTICIPATIONS_MAX];
-    long anticipation_deadline[ANTICIPATIONS_MAX];
-    int anticipation_operation_id[ANTICIPATIONS_MAX];
+    AnticipationEntry anticipations[ANTICIPATIONS_MAX];
 } Concept;
 
 //Methods//
@@ -47,13 +47,5 @@ typedef struct {
 void Concept_SetSDR(Concept *concept, SDR sdr);
 //print a concept
 void Concept_Print(Concept *concept);
-//Interpolate concepts, see https://github.com/patham9/ANSNA/wiki/Concept:-Conceptual-Interpolation
-void Concept_SDRInterpolation(Concept *concept, SDR *eventSDR, Truth matchTruth);
-//Local inference: confirming anticipations, firing spikes, matching event, adjusting Usage
-Event Concept_LocalInference(Concept *c, Event *e, long currentTime);
-//Check anticipation disappointment
-void Concept_CheckAnticipationDisappointment(Concept *c, long currentTime);
-//Confirm anticipation
-void Concept_ConfirmAnticipation(Concept *c, Event *e);
 
 #endif

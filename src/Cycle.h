@@ -2,7 +2,7 @@
 #define H_CYCLE
 
 /////////////////////////////////////
-//  ALANN Control Cycle            //
+//  ANSNA Control Cycle            //
 /////////////////////////////////////
 //A FIFO-like structure, that only supports put in and overwrites
 //the oldest task when full
@@ -11,6 +11,7 @@
 //-----------//
 #include "Globals.h"
 #include "Decision.h"
+#include "Anticipation.h"
 #include "Inference.h"
 
 //Methods//
