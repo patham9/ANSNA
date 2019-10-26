@@ -63,7 +63,7 @@ Decision Decision_BestCandidate(Event *goal, long currentTime)
                 //now look at how much the precondition is fulfilled
                 Concept *current_prec = imp.sourceConcept;
                 Event *precondition = &current_prec->belief_spike; //a. :|:
-                if(precondition != NULL)
+                if(precondition != NULL && precondition->type != EVENT_TYPE_DELETED)
                 {
                     Event ContextualOperation = Inference_GoalDeduction(goal, &imp); //(&/,a,op())! :\:
                     double operationGoalTruthExpectation = Truth_Expectation(Inference_OperationDeduction(&ContextualOperation, precondition, currentTime).truth); //op()! :|:
@@ -122,9 +122,9 @@ void Decision_AssumptionOfFailure(int operationID, long currentTime)
             Implication imp = postc->precondition_beliefs[operationID].array[h]; //(&/,a,op) =/> b.
             Concept *current_prec = imp.sourceConcept;
             Event *precondition = &current_prec->belief_spike; //a. :|:
-            Event updated_precondition = Inference_EventUpdate(precondition, currentTime);
-            if(precondition != NULL)
+            if(precondition != NULL && precondition->type != EVENT_TYPE_DELETED)
             {
+                Event updated_precondition = Inference_EventUpdate(precondition, currentTime);
                 Event op = { .type = EVENT_TYPE_BELIEF,
                              .truth = { .frequency = 1.0, .confidence = 0.9 },
                              .occurrenceTime = currentTime,
