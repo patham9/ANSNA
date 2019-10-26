@@ -166,7 +166,7 @@ bool Memory_EventIsNovel(Event *event, Concept *c_matched_to)
 
 void Memory_RelinkImplication(Implication *imp)
 {
-    if(imp->sourceConceptSDRHash != ((Concept*) &imp->sourceConcept)->sdr_hash && !SDR_Equal(&imp->sourceConceptSDR, &((Concept*) &imp->sourceConcept)->sdr))
+    if(imp->sourceConceptSDRHash != ((Concept*) &imp->sourceConcept)->sdr_hash && !SDR_Equal(&imp->sourceConceptSDR, &((Concept*) imp->sourceConcept)->sdr))
     {
         int closest_concept_i;
         if(Memory_getClosestConcept(&imp->sourceConceptSDR, SDR_Hash(&imp->sourceConceptSDR), &closest_concept_i))
