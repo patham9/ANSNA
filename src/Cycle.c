@@ -237,14 +237,5 @@ void Cycle_Perform(long currentTime)
         c->goal_spike = (Event) {0};
     }
     //Re-sort queue
-    for(int i=0; i<concepts.itemsAmount; i++)
-    {
-        Concept *concept = concepts.items[i].address;
-        //usefulness was changed, push back if it didn't get void by interpolation
-        PriorityQueue_PopAt(&concepts, i, NULL);
-        if(SDR_CountTrue(&concept->sdr) > 0)
-        {
-            Memory_addConcept(concept, currentTime);
-        }
-    }
+    PriorityQueue_Rebuild(&concepts);
 }
