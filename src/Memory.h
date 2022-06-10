@@ -27,16 +27,16 @@ extern double CONCEPT_FORMATION_NOVELTY;
 //Data structure//
 //--------------//
 //Data structures
-PriorityQueue concepts;
-FIFO belief_events;
-FIFO goal_events;
+extern PriorityQueue concepts;
+extern FIFO belief_events;
+extern FIFO goal_events;
 typedef void (*Action)(void);
 typedef struct
 {
     SDR sdr;
     Action action;
 }Operation;
-Operation operations[OPERATIONS_MAX];
+extern Operation operations[OPERATIONS_MAX];
 
 //Methods//
 //-------//

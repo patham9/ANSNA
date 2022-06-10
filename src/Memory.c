@@ -1,5 +1,10 @@
 #include "Memory.h"
 
+PriorityQueue concepts;
+FIFO belief_events;
+FIFO goal_events;
+Operation operations[OPERATIONS_MAX];
+
 double PROPAGATION_THRESHOLD = PROPAGATION_THRESHOLD_INITIAL;
 double CONCEPT_FORMATION_NOVELTY = CONCEPT_FORMATION_NOVELTY_INITIAL;
 

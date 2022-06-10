@@ -21,8 +21,8 @@
 
 //Data structure//
 //--------------//
-SDR input_terms[TERMS_MAX];
-bool input_terms_used[TERMS_MAX];
+extern SDR input_terms[TERMS_MAX];
+extern bool input_terms_used[TERMS_MAX];
 
 //Methods//
 //-------//

@@ -1,5 +1,8 @@
 #include "Encode.h"
 
+SDR input_terms[TERMS_MAX];
+bool input_terms_used[TERMS_MAX];
+
 //inspired by https://arxiv.org/pdf/1602.05925.pdf
 //but the bucket always being half of the SDR size +min_overlap
 //as needed for continuous perception purposes
